@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TMS Work Schedule</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="header">
+        <div class="date-nav">
+            <button class="nav-arrow" onclick="navigateWeek(-1)">‹</button>
+            <div class="date-range" id="dateRange">September 7-13, 2025</div>
+            <button class="nav-arrow" onclick="navigateWeek(1)">›</button>
+        </div>
+        <select class="week-selector" id="weekSelector" onchange="switchWeek()">
+            <option value="1">Week 1</option>
+            <option value="2">Week 2</option>
+        </select>
+    </div>
+
+    <div class="schedule-container">
+        <div id="scheduleContent">
+            <div class="loading">Loading schedule data...</div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="employeeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">Employee Schedule</h2>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Modal content will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
