@@ -73,18 +73,47 @@ function getInitials(name) {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
 }
 
-function parseTime(timeStr) {
-    if (!timeStr || timeStr.trim() === '') return null;
+function parseTime(timeValue) {
+    if (!timeValue && timeValue !== 0) return null;
     
-    // Handle various time formats
-    const cleanTime = timeStr.toString().trim();
-    
-    // If it's already in the right format, return it
-    if (cleanTime.includes('AM') || cleanTime.includes('PM')) {
-        return cleanTime;
+    // If it's already a formatted string, return it
+    if (typeof timeValue === 'string') {
+        const cleanTime = timeValue.trim();
+        if (cleanTime.includes('AM') || cleanTime.includes('PM')) {
+            return cleanTime;
+        }
     }
     
-    // Convert 24-hour to 12-hour format
+    // Handle Excel decimal time format (e.g., 0.291666666666667 = 7:00 AM)
+    if (typeof timeValue === 'number') {
+        // Convert decimal to 24-hour time
+        const totalMinutes = Math.round(timeValue * 24 * 60);
+        const hours = Math.floor(totalMinutes / 60);
+        const minutes = totalMinutes % 60;
+        
+        // Convert to 12-hour format
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        const displayHours = hours % 12 || 12;
+        const displayMinutes = minutes.toString().padStart(2, '0');
+        
+        return `${displayHours}:${displayMinutes} ${ampm}`;
+    }
+    
+    // Handle Date objects (if Excel returns them as dates)
+    if (timeValue instanceof Date) {
+        const hours = timeValue.getHours();
+        const minutes = timeValue.getMinutes();
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        const displayHours = hours % 12 || 12;
+        const displayMinutes = minutes.toString().padStart(2, '0');
+        
+        return `${displayHours}:${displayMinutes} ${ampm}`;
+    }
+    
+    // Try to parse as string for other formats
+    const cleanTime = timeValue.toString().trim();
+    
+    // Convert 24-hour string format
     const timeRegex = /^(\d{1,2}):(\d{2})$/;
     const match = cleanTime.match(timeRegex);
     
