@@ -107,15 +107,14 @@ function getCurrentWeek() {
     const currentDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const startDate = new Date(WEEK_1_START);
     
-    // Add week offset (7 days per week, not 14)
+    // Add week offset (7 days per week)
     startDate.setDate(startDate.getDate() + (currentWeekOffset * 7));
     
     const diffTime = currentDate - startDate;
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
     const weekNumber = Math.floor(diffDays / 7);
     
-    // For now, default to Week 2 where the data actually is
-    return 2; // Temporarily force Week 2
+    return (weekNumber % 2) + 1;
 }
 
 function updateDateRange() {
