@@ -9,6 +9,85 @@ const colors = [
     '#cddc39', '#ffeb3b', '#ffc107', '#ff9800', '#ff5722'
 ];
 
+// Utility functions - defined first
+function safeString(value) {
+    if (value === null || value === undefined) return '';
+    return String(value);
+}
+
+function isValidData(start, end, location) {
+    return start !== null && start !== undefined && start !== '' &&
+           end !== null && end !== undefined && end !== '' &&
+           location !== null && location !== undefined && location !== '';
+}
+
+function getColorForEmployee(name) {
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+        hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return colors[Math.abs(hash) % colors.length];
+}
+
+function getInitials(name) {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+}
+
+function parseTime(value) {
+    if (value === null || value === undefined || value === '') return null;
+    
+    try {
+        // Handle Excel decimal time format
+        if (typeof value === 'number' && value > 0) {
+            const totalMinutes = Math.round(value * 24 * 60);
+            const hours = Math.floor(totalMinutes / 60);
+            const minutes = totalMinutes % 60;
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            const displayHours = hours % 12 || 12;
+            const displayMinutes = minutes.toString().padStart(2, '0');
+            return `${displayHours}:${displayMinutes} ${ampm}`;
+        }
+        
+        // Handle Date objects
+        if (value instanceof Date) {
+            const hours = value.getHours();
+            const minutes = value.getMinutes();
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            const displayHours = hours % 12 || 12;
+            const displayMinutes = minutes.toString().padStart(2, '0');
+            return `${displayHours}:${displayMinutes} ${ampm}`;
+        }
+        
+        // Handle strings
+        const str = safeString(value);
+        if (!str) return null;
+        
+        const trimmed = str.trim();
+        if (!trimmed) return null;
+        
+        if (trimmed.includes('AM') || trimmed.includes('PM')) {
+            return trimmed;
+        }
+        
+        const timeRegex = /^(\d{1,2}):(\d{2})$/;
+        const match = trimmed.match(timeRegex);
+        if (match) {
+            let hour = parseInt(match[1]);
+            const minute = match[2];
+            const ampm = hour >= 12 ? 'PM' : 'AM';
+            hour = hour % 12 || 12;
+            return `${hour}:${minute} ${ampm}`;
+        }
+        
+        return null;
+        
+    } catch (error) {
+        console.error('Error in parseTime:', error, value);
+        return null;
+    }
+}
+
+// Date and week functions
 function getCurrentWeek() {
     const now = new Date();
     const currentDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -56,98 +135,12 @@ function switchWeek() {
     const currentWeek = getCurrentWeek();
     
     if (selectedWeek !== currentWeek) {
-        // Switch to the other week
         const weekDiff = selectedWeek - currentWeek;
         navigateWeek(weekDiff > 0 ? 1 : -1);
     }
 }
 
-function getColorForEmployee(name) {
-    let hash = 0;
-    for (let i = 0; i < name.length; i++) {
-        hash = name.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    return colors[Math.abs(hash) % colors.length];
-}
-
-function getInitials(name) {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
-}
-
-function parseTime(timeValue) {
-    // Handle null, undefined, or empty values
-    if (timeValue === null || timeValue === undefined || timeValue === '') {
-        return null;
-    }
-    
-    try {
-        // Handle Excel decimal time format (e.g., 0.291666666666667 = 7:00 AM)
-        if (typeof timeValue === 'number') {
-            // Convert decimal to 24-hour time
-            const totalMinutes = Math.round(timeValue * 24 * 60);
-            const hours = Math.floor(totalMinutes / 60);
-            const minutes = totalMinutes % 60;
-            
-            // Convert to 12-hour format
-            const ampm = hours >= 12 ? 'PM' : 'AM';
-            const displayHours = hours % 12 || 12;
-            const displayMinutes = minutes.toString().padStart(2, '0');
-            
-            return `${displayHours}:${displayMinutes} ${ampm}`;
-        }
-        
-        // Handle Date objects (if Excel returns them as dates)
-        if (timeValue instanceof Date) {
-            const hours = timeValue.getHours();
-            const minutes = timeValue.getMinutes();
-            const ampm = hours >= 12 ? 'PM' : 'AM';
-            const displayHours = hours % 12 || 12;
-            const displayMinutes = minutes.toString().padStart(2, '0');
-            
-            return `${displayHours}:${displayMinutes} ${ampm}`;
-        }
-        
-        // Handle string values
-        if (typeof timeValue === 'string') {
-            const cleanTime = timeValue.trim();
-            
-            // If it's already in AM/PM format, return it
-            if (cleanTime.includes('AM') || cleanTime.includes('PM')) {
-                return cleanTime;
-            }
-            
-            // Try to parse as 24-hour format
-            const timeRegex = /^(\d{1,2}):(\d{2})$/;
-            const match = cleanTime.match(timeRegex);
-            
-            if (match) {
-                let hour = parseInt(match[1]);
-                const minute = match[2];
-                const ampm = hour >= 12 ? 'PM' : 'AM';
-                hour = hour % 12 || 12;
-                return `${hour}:${minute} ${ampm}`;
-            }
-        }
-        
-        // Try to convert to string and parse
-        const stringValue = String(timeValue).trim();
-        if (stringValue && stringValue !== 'null' && stringValue !== 'undefined') {
-            return stringValue;
-        }
-        
-    } catch (error) {
-        console.error('Error parsing time value:', timeValue, error);
-    }
-    
-    return null;
-}
-
-function isValidData(start, end, location) {
-    return start !== null && start !== undefined && start !== '' &&
-           end !== null && end !== undefined && end !== '' &&
-           location !== null && location !== undefined && location !== '';
-}
-
+// Main loading function
 function loadScheduleFile() {
     // Load the TMS-WorkSchedules.xlsx file automatically
     fetch('TMS-WorkSchedules.xlsx')
@@ -208,7 +201,7 @@ function loadScheduleFile() {
                                 if (parsedLocation.includes('remote')) parsedLocation = 'remote';
                                 if (parsedLocation.includes('office')) parsedLocation = 'office';
                                 
-                                console.log(`Week 1 ${day}:`, {startTime, endTime, location, parsedStart, parsedEnd, parsedLocation});
+                                console.log(`${employeeName} Week 1 ${day}:`, {startTime, endTime, location, parsedStart, parsedEnd, parsedLocation});
                                 
                                 if (parsedStart && parsedEnd && (parsedLocation === 'remote' || parsedLocation === 'office')) {
                                     employee.weeks[1][day].push({
@@ -249,7 +242,7 @@ function loadScheduleFile() {
                                 if (parsedLocation.includes('remote')) parsedLocation = 'remote';
                                 if (parsedLocation.includes('office')) parsedLocation = 'office';
                                 
-                                console.log(`Week 2 ${day}:`, {startTime, endTime, location, parsedStart, parsedEnd, parsedLocation});
+                                console.log(`${employeeName} Week 2 ${day}:`, {startTime, endTime, location, parsedStart, parsedEnd, parsedLocation});
                                 
                                 if (parsedStart && parsedEnd && (parsedLocation === 'remote' || parsedLocation === 'office')) {
                                     employee.weeks[2][day].push({
@@ -289,6 +282,7 @@ function loadScheduleFile() {
         });
 }
 
+// Rendering functions
 function renderSchedule() {
     const currentWeek = getCurrentWeek();
     const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
@@ -347,6 +341,7 @@ function renderSchedule() {
     document.getElementById('scheduleContent').innerHTML = html;
 }
 
+// Modal functions
 function openModal(employeeName) {
     const employee = scheduleData[employeeName];
     const currentWeek = getCurrentWeek();
@@ -419,7 +414,7 @@ function closeModal() {
     document.getElementById('employeeModal').style.display = 'none';
 }
 
-// Close modal when clicking outside
+// Event handlers
 window.onclick = function(event) {
     const modal = document.getElementById('employeeModal');
     if (event.target === modal) {
