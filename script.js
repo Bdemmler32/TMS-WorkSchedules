@@ -143,13 +143,8 @@ function excelDateToTime(excelDate) {
 }
 
 function orderTimes(startTime, endTime) {
-    // Convert times to minutes for comparison
-    const startMinutes = timeToMinutes(startTime);
-    const endMinutes = timeToMinutes(endTime);
-    
-    if (startMinutes > endMinutes) {
-        return [endTime, startTime];
-    }
+    // Don't reorder times - keep them as they appear in the Excel file
+    // The issue was that we were incorrectly reordering valid times
     return [startTime, endTime];
 }
 
@@ -250,7 +245,7 @@ function renderScheduleGrid() {
                 const workBlock = document.createElement('div');
                 workBlock.className = `work-block ${block.location.toLowerCase() === 'office' ? 'office' : 'remote'}`;
                 
-                const icon = block.location.toLowerCase() === 'office' ? '🏢' : '📍';
+                const icon = block.location.toLowerCase() === 'office' ? '<i class="fas fa-building"></i>' : '<i class="fas fa-home"></i>';
                 workBlock.innerHTML = `
                     <span class="work-block-icon">${icon}</span>
                     <span class="work-block-time">${block.startTime} - ${block.endTime}</span>
@@ -329,7 +324,7 @@ function renderModalWeek(gridId, weekData) {
                 const workBlock = document.createElement('div');
                 workBlock.className = `modal-work-block ${block.location.toLowerCase() === 'office' ? 'office' : 'remote'}`;
                 
-                const icon = block.location.toLowerCase() === 'office' ? '🏢' : '📍';
+                const icon = block.location.toLowerCase() === 'office' ? '<i class="fas fa-building"></i>' : '<i class="fas fa-home"></i>';
                 workBlock.innerHTML = `
                     <span class="work-block-icon">${icon}</span>
                     <span class="work-block-time">${block.startTime} - ${block.endTime}</span>
@@ -350,11 +345,11 @@ function closeModal() {
 
 function showLoading(show) {
     document.getElementById('loading').style.display = show ? 'flex' : 'none';
-    document.getElementById('scheduleGrid').style.display = show ? 'none' : 'block';
+    document.getElementById('scheduleBody').style.display = show ? 'none' : 'block';
 }
 
 function showError() {
     document.getElementById('loading').style.display = 'none';
     document.getElementById('error').style.display = 'flex';
-    document.getElementById('scheduleGrid').style.display = 'none';
+    document.getElementById('scheduleBody').style.display = 'none';
 }

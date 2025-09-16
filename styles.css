@@ -13,7 +13,6 @@ body {
 .container {
     max-width: 1400px;
     margin: 0 auto;
-    background: white;
     min-height: 100vh;
 }
 
@@ -84,6 +83,15 @@ body {
     color: #d32f2f;
 }
 
+/* Schedule Body */
+.schedule-body {
+    margin: 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
 /* Schedule Grid */
 .schedule-grid {
     padding: 0;
@@ -117,6 +125,19 @@ body {
     grid-template-columns: 200px repeat(5, 1fr);
     border-bottom: 1px solid #e0e0e0;
     min-height: 80px;
+    background: white;
+}
+
+.employee-row:nth-child(even) {
+    background: #fafafa;
+}
+
+.employee-row:hover {
+    background: #f0f7ff;
+}
+
+.employee-row:last-child {
+    border-bottom: none;
 }
 
 .employee-info {
@@ -180,6 +201,8 @@ body {
 
 .work-block-icon {
     font-size: 12px;
+    width: 14px;
+    text-align: center;
 }
 
 .work-block-time {
@@ -204,9 +227,9 @@ body {
 .modal-content {
     background: white;
     border-radius: 8px;
-    width: 90%;
-    max-width: 800px;
-    max-height: 80vh;
+    width: 95%;
+    max-width: 1000px;
+    max-height: 85vh;
     overflow-y: auto;
 }
 
@@ -260,6 +283,7 @@ body {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     gap: 12px;
+    min-width: 0; /* Prevent grid overflow */
 }
 
 .modal-day {
@@ -267,6 +291,8 @@ body {
     border-radius: 6px;
     padding: 12px;
     min-height: 120px;
+    min-width: 0; /* Prevent overflow */
+    overflow-wrap: break-word;
 }
 
 .modal-day-header {
@@ -333,6 +359,11 @@ body {
         gap: 15px;
     }
     
+    .schedule-body {
+        margin: 10px;
+        border-radius: 8px;
+    }
+    
     .day-headers {
         grid-template-columns: 150px repeat(5, 1fr);
     }
@@ -365,8 +396,9 @@ body {
     }
     
     .modal-content {
-        width: 95%;
-        max-height: 85vh;
+        width: 98%;
+        max-height: 90vh;
+        margin: 10px;
     }
     
     .modal-schedule-grid {
