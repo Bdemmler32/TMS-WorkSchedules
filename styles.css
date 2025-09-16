@@ -112,6 +112,7 @@ body {
     font-weight: 600;
     text-align: center;
     border-right: 1px solid #e0e0e0;
+    box-sizing: border-box;
 }
 
 .employee-header {
@@ -148,6 +149,7 @@ body {
     gap: 12px;
     cursor: pointer;
     transition: background-color 0.2s;
+    box-sizing: border-box;
 }
 
 .employee-info:hover {
@@ -179,6 +181,7 @@ body {
     flex-direction: column;
     gap: 4px;
     min-height: 80px;
+    box-sizing: border-box;
 }
 
 /* Work Blocks */
