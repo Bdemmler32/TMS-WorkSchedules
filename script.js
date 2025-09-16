@@ -201,17 +201,7 @@ function loadScheduleFile() {
                                 if (parsedLocation.includes('remote')) parsedLocation = 'remote';
                                 if (parsedLocation.includes('office')) parsedLocation = 'office';
                                 
-                                console.log(`${employeeName} Week 1 ${day}:`, {
-                                    startTime, 
-                                    endTime, 
-                                    location, 
-                                    parsedStart, 
-                                    parsedEnd, 
-                                    parsedLocation,
-                                    startTimeType: typeof startTime,
-                                    endTimeType: typeof endTime,
-                                    locationValue: JSON.stringify(location)
-                                });
+                                console.log(`${employeeName} Week 1 ${day}: startTime=${startTime}, endTime=${endTime}, location="${location}", parsedStart="${parsedStart}", parsedEnd="${parsedEnd}", parsedLocation="${parsedLocation}", validation=${(parsedStart && parsedEnd && (parsedLocation === 'remote' || parsedLocation === 'office'))}`);
                                 
                                 if (parsedStart && parsedEnd && (parsedLocation === 'remote' || parsedLocation === 'office')) {
                                     employee.weeks[1][day].push({
@@ -252,17 +242,7 @@ function loadScheduleFile() {
                                 if (parsedLocation.includes('remote')) parsedLocation = 'remote';
                                 if (parsedLocation.includes('office')) parsedLocation = 'office';
                                 
-                                console.log(`${employeeName} Week 2 ${day}:`, {
-                                    startTime, 
-                                    endTime, 
-                                    location, 
-                                    parsedStart, 
-                                    parsedEnd, 
-                                    parsedLocation,
-                                    startTimeType: typeof startTime,
-                                    endTimeType: typeof endTime,
-                                    locationValue: JSON.stringify(location)
-                                });
+                                console.log(`${employeeName} Week 2 ${day}: startTime=${startTime}, endTime=${endTime}, location="${location}", parsedStart="${parsedStart}", parsedEnd="${parsedEnd}", parsedLocation="${parsedLocation}", validation=${(parsedStart && parsedEnd && (parsedLocation === 'remote' || parsedLocation === 'office'))}`);
                                 
                                 if (parsedStart && parsedEnd && (parsedLocation === 'remote' || parsedLocation === 'office')) {
                                     employee.weeks[2][day].push({
