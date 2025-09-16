@@ -201,7 +201,17 @@ function loadScheduleFile() {
                                 if (parsedLocation.includes('remote')) parsedLocation = 'remote';
                                 if (parsedLocation.includes('office')) parsedLocation = 'office';
                                 
-                                console.log(`${employeeName} Week 1 ${day}:`, {startTime, endTime, location, parsedStart, parsedEnd, parsedLocation});
+                                console.log(`${employeeName} Week 1 ${day}:`, {
+                                    startTime, 
+                                    endTime, 
+                                    location, 
+                                    parsedStart, 
+                                    parsedEnd, 
+                                    parsedLocation,
+                                    startTimeType: typeof startTime,
+                                    endTimeType: typeof endTime,
+                                    locationValue: JSON.stringify(location)
+                                });
                                 
                                 if (parsedStart && parsedEnd && (parsedLocation === 'remote' || parsedLocation === 'office')) {
                                     employee.weeks[1][day].push({
@@ -242,7 +252,17 @@ function loadScheduleFile() {
                                 if (parsedLocation.includes('remote')) parsedLocation = 'remote';
                                 if (parsedLocation.includes('office')) parsedLocation = 'office';
                                 
-                                console.log(`${employeeName} Week 2 ${day}:`, {startTime, endTime, location, parsedStart, parsedEnd, parsedLocation});
+                                console.log(`${employeeName} Week 2 ${day}:`, {
+                                    startTime, 
+                                    endTime, 
+                                    location, 
+                                    parsedStart, 
+                                    parsedEnd, 
+                                    parsedLocation,
+                                    startTimeType: typeof startTime,
+                                    endTimeType: typeof endTime,
+                                    locationValue: JSON.stringify(location)
+                                });
                                 
                                 if (parsedStart && parsedEnd && (parsedLocation === 'remote' || parsedLocation === 'office')) {
                                     employee.weeks[2][day].push({
@@ -258,7 +278,7 @@ function loadScheduleFile() {
                     scheduleData[employeeName] = employee;
                 });
                 
-                console.log('Loaded schedule data:', scheduleData);
+                console.log('Loaded schedule data:', JSON.stringify(scheduleData, null, 2));
                 renderSchedule();
                 
             } catch (error) {
@@ -309,7 +329,7 @@ function renderSchedule() {
         `;
         
         days.forEach(day => {
-            const blocks = employee.weeks[currentWeek][day] || [];
+            const blocks = (employee.weeks && employee.weeks[currentWeek] && employee.weeks[currentWeek][day]) ? employee.weeks[currentWeek][day] : [];
             html += `<div class="day-cell">`;
             
             blocks.forEach(block => {
@@ -364,7 +384,7 @@ function openModal(employeeName) {
         const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
         
         days.forEach((day, dayIndex) => {
-            const blocks = employee.weeks[weekNum][day] || [];
+            const blocks = (employee.weeks && employee.weeks[weekNum] && employee.weeks[weekNum][day]) ? employee.weeks[weekNum][day] : [];
             
             modalContent += `
                 <div class="day-detail">
