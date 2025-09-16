@@ -76,6 +76,9 @@ function getInitials(name) {
 function parseTime(timeValue) {
     if (!timeValue && timeValue !== 0) return null;
     
+    // Debug log to see what we're getting
+    console.log('Parsing time value:', timeValue, 'Type:', typeof timeValue);
+    
     // If it's already a formatted string, return it
     if (typeof timeValue === 'string') {
         const cleanTime = timeValue.trim();
@@ -110,8 +113,14 @@ function parseTime(timeValue) {
         return `${displayHours}:${displayMinutes} ${ampm}`;
     }
     
-    // Try to parse as string for other formats
-    const cleanTime = timeValue.toString().trim();
+    // Try to parse as string for other formats - but safely
+    let cleanTime;
+    try {
+        cleanTime = String(timeValue).trim();
+    } catch (e) {
+        console.error('Error converting timeValue to string:', e);
+        return null;
+    }
     
     // Convert 24-hour string format
     const timeRegex = /^(\d{1,2}):(\d{2})$/;
@@ -179,12 +188,20 @@ function loadScheduleFile() {
                             const endTime = worksheet[endCell] ? worksheet[endCell].v : '';
                             const location = worksheet[locCell] ? worksheet[locCell].v : '';
                             
-                            if (startTime && endTime && location) {
-                                employee.weeks[1][day].push({
-                                    start: parseTime(startTime),
-                                    end: parseTime(endTime),
-                                    location: location.toLowerCase()
-                                });
+                            // Only add if all three values exist and are not empty
+                            if (startTime && endTime && location && 
+                                startTime !== '' && endTime !== '' && location !== '') {
+                                const parsedStart = parseTime(startTime);
+                                const parsedEnd = parseTime(endTime);
+                                const parsedLocation = typeof location === 'string' ? location.toLowerCase().trim() : String(location).toLowerCase().trim();
+                                
+                                if (parsedStart && parsedEnd && parsedLocation) {
+                                    employee.weeks[1][day].push({
+                                        start: parsedStart,
+                                        end: parsedEnd,
+                                        location: parsedLocation
+                                    });
+                                }
                             }
                         }
                     }
@@ -208,12 +225,24 @@ function loadScheduleFile() {
                             const endTime = worksheet[endCell] ? worksheet[endCell].v : '';
                             const location = worksheet[locCell] ? worksheet[locCell].v : '';
                             
-                            if (startTime && endTime && location) {
-                                employee.weeks[2][day].push({
-                                    start: parseTime(startTime),
-                                    end: parseTime(endTime),
-                                    location: location.toLowerCase()
-                                });
+                            const startTime = worksheet[startCell] ? worksheet[startCell].v : '';
+                            const endTime = worksheet[endCell] ? worksheet[endCell].v : '';
+                            const location = worksheet[locCell] ? worksheet[locCell].v : '';
+                            
+                            // Only add if all three values exist and are not empty
+                            if (startTime && endTime && location && 
+                                startTime !== '' && endTime !== '' && location !== '') {
+                                const parsedStart = parseTime(startTime);
+                                const parsedEnd = parseTime(endTime);
+                                const parsedLocation = typeof location === 'string' ? location.toLowerCase().trim() : String(location).toLowerCase().trim();
+                                
+                                if (parsedStart && parsedEnd && parsedLocation) {
+                                    employee.weeks[2][day].push({
+                                        start: parsedStart,
+                                        end: parsedEnd,
+                                        location: parsedLocation
+                                    });
+                                }
                             }
                         }
                     }
