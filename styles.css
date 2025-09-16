@@ -137,11 +137,13 @@ body {
 .work-block.office {
     background-color: #ffeaa7;
     color: #2d3436;
+    border: 1px solid #e17055;
 }
 
 .work-block.remote {
     background-color: #d1c4e9;
     color: #4a148c;
+    border: 1px solid #9c88ff;
 }
 
 .work-icon {
@@ -247,11 +249,13 @@ body {
 .detail-work-block.office {
     background-color: #ffeaa7;
     color: #2d3436;
+    border: 1px solid #e17055;
 }
 
 .detail-work-block.remote {
     background-color: #d1c4e9;
     color: #4a148c;
+    border: 1px solid #9c88ff;
 }
 
 .detail-work-block:last-child {

@@ -14,22 +14,23 @@ function getCurrentWeek() {
     const currentDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const startDate = new Date(WEEK_1_START);
     
-    // Add week offset
-    startDate.setDate(startDate.getDate() + (currentWeekOffset * 14));
+    // Add week offset (7 days per week, not 14)
+    startDate.setDate(startDate.getDate() + (currentWeekOffset * 7));
     
     const diffTime = currentDate - startDate;
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    const weekNumber = Math.floor(diffDays / 14);
+    const weekNumber = Math.floor(diffDays / 7);
     
     return (weekNumber % 2) + 1;
 }
 
 function updateDateRange() {
     const startDate = new Date(WEEK_1_START);
-    startDate.setDate(startDate.getDate() + (currentWeekOffset * 14));
+    // Each week is 7 days, not 14
+    startDate.setDate(startDate.getDate() + (currentWeekOffset * 7));
     
     const endDate = new Date(startDate);
-    endDate.setDate(endDate.getDate() + 13);
+    endDate.setDate(endDate.getDate() + 6); // 7 days total (0-6)
     
     const options = { month: 'long', day: 'numeric', year: 'numeric' };
     const startStr = startDate.toLocaleDateString('en-US', options);
@@ -201,9 +202,15 @@ function loadScheduleFile() {
                             if (isValidData(startTime, endTime, location)) {
                                 const parsedStart = parseTime(startTime);
                                 const parsedEnd = parseTime(endTime);
-                                const parsedLocation = String(location).toLowerCase().trim();
+                                let parsedLocation = safeString(location).toLowerCase().trim();
                                 
-                                if (parsedStart && parsedEnd && parsedLocation) {
+                                // Handle different location formats
+                                if (parsedLocation.includes('remote')) parsedLocation = 'remote';
+                                if (parsedLocation.includes('office')) parsedLocation = 'office';
+                                
+                                console.log(`Week 1 ${day}:`, {startTime, endTime, location, parsedStart, parsedEnd, parsedLocation});
+                                
+                                if (parsedStart && parsedEnd && (parsedLocation === 'remote' || parsedLocation === 'office')) {
                                     employee.weeks[1][day].push({
                                         start: parsedStart,
                                         end: parsedEnd,
@@ -236,9 +243,15 @@ function loadScheduleFile() {
                             if (isValidData(startTime, endTime, location)) {
                                 const parsedStart = parseTime(startTime);
                                 const parsedEnd = parseTime(endTime);
-                                const parsedLocation = String(location).toLowerCase().trim();
+                                let parsedLocation = safeString(location).toLowerCase().trim();
                                 
-                                if (parsedStart && parsedEnd && parsedLocation) {
+                                // Handle different location formats
+                                if (parsedLocation.includes('remote')) parsedLocation = 'remote';
+                                if (parsedLocation.includes('office')) parsedLocation = 'office';
+                                
+                                console.log(`Week 2 ${day}:`, {startTime, endTime, location, parsedStart, parsedEnd, parsedLocation});
+                                
+                                if (parsedStart && parsedEnd && (parsedLocation === 'remote' || parsedLocation === 'office')) {
                                     employee.weeks[2][day].push({
                                         start: parsedStart,
                                         end: parsedEnd,
@@ -308,7 +321,8 @@ function renderSchedule() {
             blocks.forEach(block => {
                 const icon = block.location === 'office' ? 
                     `<svg class="work-icon" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+                        <path d="M12 2L2 7v10c0 5.55 3.84 10 9 10s9-4.45 9-10V7L12 2z"/>
+                        <path d="M12 2L2 7l10 5 10-5L12 2z"/>
                     </svg>` :
                     `<svg class="work-icon" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
@@ -317,7 +331,7 @@ function renderSchedule() {
                 html += `
                     <div class="work-block ${block.location}">
                         ${icon}
-                        <span>${block.start}-${block.end}</span>
+                        <span>${block.start} - ${block.end}</span>
                     </div>
                 `;
             });
@@ -369,7 +383,8 @@ function openModal(employeeName) {
                 blocks.forEach(block => {
                     const icon = block.location === 'office' ? 
                         `<svg class="work-icon" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+                            <path d="M12 2L2 7v10c0 5.55 3.84 10 9 10s9-4.45 9-10V7L12 2z"/>
+                            <path d="M12 2L2 7l10 5 10-5L12 2z"/>
                         </svg>` :
                         `<svg class="work-icon" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
