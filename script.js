@@ -180,17 +180,19 @@ function loadScheduleFile() {
                         const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
                         for (let dayIndex = 0; dayIndex < days.length; dayIndex++) {
                             const day = days[dayIndex];
-                            const startCol = 4 + (dayIndex * 3); // Start, End, Location columns
-                            const endCol = startCol + 1;
-                            const locCol = startCol + 2;
+                            const startCol = 4 + (dayIndex * 3); // Start time column
+                            const endCol = startCol + 1;         // End time column  
+                            const locCol = startCol + 2;         // Location column
                             
                             const startCell = XLSX.utils.encode_cell({r: rowNum, c: startCol});
                             const endCell = XLSX.utils.encode_cell({r: rowNum, c: endCol});
                             const locCell = XLSX.utils.encode_cell({r: rowNum, c: locCol});
                             
-                            const startTime = worksheet[startCell] ? worksheet[startCell].v : null;
-                            const endTime = worksheet[endCell] ? worksheet[endCell].v : null;
-                            const location = worksheet[locCell] ? worksheet[locCell].v : null;
+                            // Based on the console output, the columns seem to be: Location, End, Start
+                            // Let's try swapping them:
+                            const location = worksheet[startCell] ? worksheet[startCell].v : null;  // First column is actually location
+                            const endTime = worksheet[endCell] ? worksheet[endCell].v : null;      // Second column is end time
+                            const startTime = worksheet[locCell] ? worksheet[locCell].v : null;    // Third column is start time
                             
                             if (isValidData(startTime, endTime, location)) {
                                 const parsedStart = parseTime(startTime);
@@ -229,9 +231,11 @@ function loadScheduleFile() {
                             const endCell = XLSX.utils.encode_cell({r: rowNum, c: endCol});
                             const locCell = XLSX.utils.encode_cell({r: rowNum, c: locCol});
                             
-                            const startTime = worksheet[startCell] ? worksheet[startCell].v : null;
-                            const endTime = worksheet[endCell] ? worksheet[endCell].v : null;
-                            const location = worksheet[locCell] ? worksheet[locCell].v : null;
+                            // Based on the console output, the columns seem to be: Location, End, Start
+                            // Let's try swapping them:
+                            const location = worksheet[startCell] ? worksheet[startCell].v : null;  // First column is actually location
+                            const endTime = worksheet[endCell] ? worksheet[endCell].v : null;      // Second column is end time
+                            const startTime = worksheet[locCell] ? worksheet[locCell].v : null;    // Third column is start time
                             
                             if (isValidData(startTime, endTime, location)) {
                                 const parsedStart = parseTime(startTime);
