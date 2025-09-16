@@ -1,474 +1,360 @@
-let scheduleData = {};
-let currentWeekOffset = 0;
+// Global variables
+let employeeData = {};
+let currentWeekStart = null;
+let currentWeekType = 1; // 1 or 2
+
+// Week 1 starts on September 13, 2025
 const WEEK_1_START = new Date('2025-09-13T00:00:00');
 
-// Generate random colors for employee initials
-const colors = [
-    '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3',
-    '#03a9f4', '#00bcd4', '#009688', '#4caf50', '#8bc34a',
-    '#cddc39', '#ffeb3b', '#ffc107', '#ff9800', '#ff5722'
-];
+// Initialize the application
+document.addEventListener('DOMContentLoaded', function() {
+    initializeEventListeners();
+    loadScheduleData();
+});
 
-// Utility functions - defined first
-function safeString(value) {
-    if (value === null || value === undefined) return '';
-    return String(value);
-}
-
-function isValidData(start, end, location) {
-    return start !== null && start !== undefined && start !== '' &&
-           end !== null && end !== undefined && end !== '' &&
-           location !== null && location !== undefined && location !== '';
-}
-
-function getColorForEmployee(name) {
-    let hash = 0;
-    for (let i = 0; i < name.length; i++) {
-        hash = name.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    return colors[Math.abs(hash) % colors.length];
-}
-
-function getInitials(name) {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
-}
-
-function parseTime(value) {
-    if (value === null || value === undefined || value === '') return null;
+function initializeEventListeners() {
+    // Navigation buttons
+    document.getElementById('prevWeek').addEventListener('click', () => navigateWeek(-1));
+    document.getElementById('nextWeek').addEventListener('click', () => navigateWeek(1));
     
+    // Week selector
+    document.getElementById('weekSelector').addEventListener('change', (e) => {
+        currentWeekType = parseInt(e.target.value);
+        updateDisplay();
+    });
+    
+    // Modal events
+    document.getElementById('closeModal').addEventListener('click', closeModal);
+    document.getElementById('employeeModal').addEventListener('click', (e) => {
+        if (e.target.id === 'employeeModal') closeModal();
+    });
+}
+
+async function loadScheduleData() {
     try {
-        // Handle Excel decimal time format
-        if (typeof value === 'number' && value > 0) {
-            const totalMinutes = Math.round(value * 24 * 60);
-            const hours = Math.floor(totalMinutes / 60);
-            const minutes = totalMinutes % 60;
-            const ampm = hours >= 12 ? 'PM' : 'AM';
-            const displayHours = hours % 12 || 12;
-            const displayMinutes = minutes.toString().padStart(2, '0');
-            return `${displayHours}:${displayMinutes} ${ampm}`;
+        showLoading(true);
+        
+        const response = await fetch('TMS-WorkSchedules.xlsx');
+        if (!response.ok) {
+            throw new Error('Could not load Excel file');
         }
         
-        // Handle Date objects
-        if (value instanceof Date) {
-            const hours = value.getHours();
-            const minutes = value.getMinutes();
-            const ampm = hours >= 12 ? 'PM' : 'AM';
-            const displayHours = hours % 12 || 12;
-            const displayMinutes = minutes.toString().padStart(2, '0');
-            return `${displayHours}:${displayMinutes} ${ampm}`;
-        }
+        const arrayBuffer = await response.arrayBuffer();
+        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
         
-        // Handle strings
-        const str = safeString(value);
-        if (!str) return null;
+        processWorkbookData(workbook);
         
-        const trimmed = str.trim();
-        if (!trimmed) return null;
+        // Set current week based on today's date
+        setCurrentWeek();
+        updateDisplay();
         
-        if (trimmed.includes('AM') || trimmed.includes('PM')) {
-            return trimmed;
-        }
-        
-        const timeRegex = /^(\d{1,2}):(\d{2})$/;
-        const match = trimmed.match(timeRegex);
-        if (match) {
-            let hour = parseInt(match[1]);
-            const minute = match[2];
-            const ampm = hour >= 12 ? 'PM' : 'AM';
-            hour = hour % 12 || 12;
-            return `${hour}:${minute} ${ampm}`;
-        }
-        
-        return null;
+        showLoading(false);
         
     } catch (error) {
-        console.error('Error in parseTime:', error, value);
-        return null;
+        console.error('Error loading schedule:', error);
+        showError();
     }
 }
 
-function timeToMinutes(timeString) {
-    const [time, period] = timeString.split(' ');
-    const [hours, minutes] = time.split(':').map(Number);
-    let totalMinutes = hours * 60 + minutes;
+function processWorkbookData(workbook) {
+    const validSheets = workbook.SheetNames.filter(name => 
+        name !== 'NewEmployee' && name !== 'FormTools'
+    );
     
-    if (period === 'PM' && hours !== 12) {
-        totalMinutes += 12 * 60;
-    } else if (period === 'AM' && hours === 12) {
-        totalMinutes -= 12 * 60;
+    const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+    const dayColumns = {
+        'Monday': ['I', 'J', 'K'],
+        'Tuesday': ['L', 'M', 'N'], 
+        'Wednesday': ['O', 'P', 'Q'],
+        'Thursday': ['R', 'S', 'T'],
+        'Friday': ['U', 'V', 'W']
+    };
+    
+    validSheets.forEach(sheetName => {
+        const sheet = workbook.Sheets[sheetName];
+        const employeeName = sheet['C1']?.v || sheetName;
+        
+        employeeData[employeeName] = {
+            sheetName: sheetName,
+            week1: {},
+            week2: {}
+        };
+        
+        // Process Week 1 (rows 9-13)
+        for (let row = 9; row <= 13; row++) {
+            processDayData(sheet, row, daysOfWeek, dayColumns, employeeName, 'week1');
+        }
+        
+        // Process Week 2 (rows 24-28)
+        for (let row = 24; row <= 28; row++) {
+            processDayData(sheet, row, daysOfWeek, dayColumns, employeeName, 'week2');
+        }
+    });
+}
+
+function processDayData(sheet, row, daysOfWeek, dayColumns, employeeName, weekType) {
+    daysOfWeek.forEach(day => {
+        const [startCol, endCol, locationCol] = dayColumns[day];
+        const startTime = sheet[`${startCol}${row}`]?.v;
+        const endTime = sheet[`${endCol}${row}`]?.v;
+        const location = sheet[`${locationCol}${row}`]?.v;
+        
+        if (startTime && endTime && location) {
+            if (!employeeData[employeeName][weekType][day]) {
+                employeeData[employeeName][weekType][day] = [];
+            }
+            
+            const startTimeFormatted = excelDateToTime(startTime);
+            const endTimeFormatted = excelDateToTime(endTime);
+            
+            // Ensure start time comes before end time
+            const [finalStart, finalEnd] = orderTimes(startTimeFormatted, endTimeFormatted);
+            
+            employeeData[employeeName][weekType][day].push({
+                startTime: finalStart,
+                endTime: finalEnd,
+                location: location.trim(),
+                block: weekType === 'week1' ? row - 8 : row - 23
+            });
+        }
+    });
+}
+
+function excelDateToTime(excelDate) {
+    if (!excelDate) return null;
+    
+    // Handle both date objects and decimal time values
+    let timeValue;
+    if (excelDate instanceof Date) {
+        timeValue = excelDate.getHours() + (excelDate.getMinutes() / 60);
+    } else {
+        // Excel decimal time (e.g., 0.5 = 12:00 PM)
+        timeValue = excelDate * 24;
     }
     
+    const hours = Math.floor(timeValue);
+    const minutes = Math.round((timeValue - hours) * 60);
+    
+    // Convert to 12-hour format
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const displayHours = hours === 0 ? 12 : (hours > 12 ? hours - 12 : hours);
+    
+    return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+}
+
+function orderTimes(startTime, endTime) {
+    // Convert times to minutes for comparison
+    const startMinutes = timeToMinutes(startTime);
+    const endMinutes = timeToMinutes(endTime);
+    
+    if (startMinutes > endMinutes) {
+        return [endTime, startTime];
+    }
+    return [startTime, endTime];
+}
+
+function timeToMinutes(timeStr) {
+    const [time, period] = timeStr.split(' ');
+    const [hours, minutes] = time.split(':').map(Number);
+    let totalMinutes = (hours % 12) * 60 + minutes;
+    if (period === 'PM' && hours !== 12) totalMinutes += 720;
+    if (period === 'AM' && hours === 12) totalMinutes = minutes;
     return totalMinutes;
 }
 
-// Date and week functions
-function getCurrentWeek() {
-    const now = new Date();
-    const currentDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const startDate = new Date(WEEK_1_START);
+function setCurrentWeek() {
+    const today = new Date();
+    const daysSinceWeek1 = Math.floor((today - WEEK_1_START) / (1000 * 60 * 60 * 24));
+    const weekNumber = Math.floor(daysSinceWeek1 / 7);
     
-    // Add week offset (7 days per week)
-    startDate.setDate(startDate.getDate() + (currentWeekOffset * 7));
+    currentWeekType = (weekNumber % 2) + 1;
     
-    const diffTime = currentDate - startDate;
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    const weekNumber = Math.floor(diffDays / 7);
-    
-    return (weekNumber % 2) + 1;
-}
-
-function updateDateRange() {
-    const startDate = new Date(WEEK_1_START);
-    // Each week is 7 days, not 14
-    startDate.setDate(startDate.getDate() + (currentWeekOffset * 7));
-    
-    const endDate = new Date(startDate);
-    endDate.setDate(endDate.getDate() + 6); // 7 days total (0-6)
-    
-    const options = { month: 'long', day: 'numeric', year: 'numeric' };
-    const startStr = startDate.toLocaleDateString('en-US', options);
-    const endStr = endDate.toLocaleDateString('en-US', options);
-    
-    document.getElementById('dateRange').textContent = `${startStr} - ${endStr}`;
+    // Set current week start to the beginning of this week period
+    const weeksFromStart = Math.floor(daysSinceWeek1 / 7);
+    currentWeekStart = new Date(WEEK_1_START);
+    currentWeekStart.setDate(currentWeekStart.getDate() + (weeksFromStart * 7));
     
     // Update week selector
-    const currentWeek = getCurrentWeek();
-    document.getElementById('weekSelector').value = currentWeek;
+    document.getElementById('weekSelector').value = currentWeekType.toString();
 }
 
 function navigateWeek(direction) {
-    currentWeekOffset += direction;
+    currentWeekStart.setDate(currentWeekStart.getDate() + (direction * 7));
+    
+    // Determine week type based on weeks from original start
+    const daysSinceStart = Math.floor((currentWeekStart - WEEK_1_START) / (1000 * 60 * 60 * 24));
+    const weekNumber = Math.floor(daysSinceStart / 7);
+    currentWeekType = (weekNumber % 2) + 1;
+    
+    document.getElementById('weekSelector').value = currentWeekType.toString();
+    updateDisplay();
+}
+
+function updateDisplay() {
     updateDateRange();
-    if (Object.keys(scheduleData).length > 0) {
-        renderSchedule();
-    }
+    renderScheduleGrid();
 }
 
-function switchWeek() {
-    const selectedWeek = parseInt(document.getElementById('weekSelector').value);
-    const currentWeek = getCurrentWeek();
+function updateDateRange() {
+    const weekEnd = new Date(currentWeekStart);
+    weekEnd.setDate(weekEnd.getDate() + 6);
     
-    if (selectedWeek !== currentWeek) {
-        const weekDiff = selectedWeek - currentWeek;
-        navigateWeek(weekDiff > 0 ? 1 : -1);
-    }
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    const startStr = currentWeekStart.toLocaleDateString('en-US', options);
+    const endStr = weekEnd.toLocaleDateString('en-US', options);
+    
+    document.getElementById('dateRange').textContent = `${startStr} - ${endStr}`;
 }
 
-// Main loading function
-function loadScheduleFile() {
-    // Load the TMS-WorkSchedules.xlsx file automatically
-    fetch('TMS-WorkSchedules.xlsx')
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Could not load TMS-WorkSchedules.xlsx file');
-            }
-            return response.arrayBuffer();
-        })
-        .then(data => {
-            try {
-                const workbook = XLSX.read(data, {type: 'array'});
-                
-                scheduleData = {};
-                
-                // Process each sheet
-                workbook.SheetNames.forEach(sheetName => {
-                    if (sheetName === 'NewEmployee' || sheetName === 'FormTools') {
-                        return; // Skip these sheets
-                    }
-                    
-                    const worksheet = workbook.Sheets[sheetName];
-                    const employeeName = worksheet['C1'] ? worksheet['C1'].v : sheetName;
-                    
-                    const employee = {
-                        name: employeeName,
-                        weeks: {
-                            1: { Mon: [], Tue: [], Wed: [], Thu: [], Fri: [] },
-                            2: { Mon: [], Tue: [], Wed: [], Thu: [], Fri: [] }
-                        }
-                    };
-                    
-                    // Parse Week 1 (rows 9-13)
-                    for (let blockNum = 1; blockNum <= 5; blockNum++) {
-                        const rowNum = 8 + blockNum; // Row 9-13 in Excel = index 8-12
-                        
-                        const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
-                        for (let dayIndex = 0; dayIndex < days.length; dayIndex++) {
-                            const day = days[dayIndex];
-                            const startCol = 4 + (dayIndex * 3); // Start, End, Location columns
-                            const endCol = startCol + 1;
-                            const locCol = startCol + 2;
-                            
-                            const startCell = XLSX.utils.encode_cell({r: rowNum, c: startCol});
-                            const endCell = XLSX.utils.encode_cell({r: rowNum, c: endCol});
-                            const locCell = XLSX.utils.encode_cell({r: rowNum, c: locCol});
-                            
-                            console.log(`Reading ${employeeName} Week 1 ${day}: cells ${startCell}, ${endCell}, ${locCell}`);
-                            
-                            const startTime = worksheet[startCell] ? worksheet[startCell].v : null;
-                            const endTime = worksheet[endCell] ? worksheet[endCell].v : null;
-                            const location = worksheet[locCell] ? worksheet[locCell].v : null;
-                            
-                            if (isValidData(startTime, endTime, location)) {
-                                const parsedStart = parseTime(startTime);
-                                const parsedEnd = parseTime(endTime);
-                                let parsedLocation = safeString(location).toLowerCase().trim();
-                                
-                                // Handle different location formats
-                                if (parsedLocation.includes('remote')) parsedLocation = 'remote';
-                                if (parsedLocation.includes('office')) parsedLocation = 'office';
-                                
-                                console.log(`${employeeName} Week 1 ${day}: startTime=${startTime}, endTime=${endTime}, location="${location}", parsedStart="${parsedStart}", parsedEnd="${parsedEnd}", parsedLocation="${parsedLocation}", validation=${(parsedStart && parsedEnd && (parsedLocation === 'remote' || parsedLocation === 'office'))}`);
-                                
-                                // Ensure start time comes before end time
-                                if (parsedStart && parsedEnd && (parsedLocation === 'remote' || parsedLocation === 'office')) {
-                                    // Convert times to minutes for comparison
-                                    const startMinutes = timeToMinutes(parsedStart);
-                                    const endMinutes = timeToMinutes(parsedEnd);
-                                    
-                                    // If end time is before start time, swap them
-                                    let finalStart = parsedStart;
-                                    let finalEnd = parsedEnd;
-                                    
-                                    if (endMinutes < startMinutes) {
-                                        finalStart = parsedEnd;
-                                        finalEnd = parsedStart;
-                                    }
-                                    
-                                    employee.weeks[1][day].push({
-                                        start: finalStart,
-                                        end: finalEnd,
-                                        location: parsedLocation
-                                    });
-                                }
-                            }
-                        }
-                    }
-                    
-                    // Parse Week 2 (rows 24-28)
-                    for (let blockNum = 1; blockNum <= 5; blockNum++) {
-                        const rowNum = 23 + blockNum; // Row 24-28 in Excel = index 23-27
-                        
-                        const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
-                        for (let dayIndex = 0; dayIndex < days.length; dayIndex++) {
-                            const day = days[dayIndex];
-                            const startCol = 4 + (dayIndex * 3);
-                            const endCol = startCol + 1;
-                            const locCol = startCol + 2;
-                            
-                            const startCell = XLSX.utils.encode_cell({r: rowNum, c: startCol});
-                            const endCell = XLSX.utils.encode_cell({r: rowNum, c: endCol});
-                            const locCell = XLSX.utils.encode_cell({r: rowNum, c: locCol});
-                            
-                            // Based on the console output, the columns seem to be: Location, End, Start
-                            // Let's try swapping them:
-                            const location = worksheet[startCell] ? worksheet[startCell].v : null;  // First column is actually location
-                            const endTime = worksheet[endCell] ? worksheet[endCell].v : null;      // Second column is end time
-                            const startTime = worksheet[locCell] ? worksheet[locCell].v : null;    // Third column is start time
-                            
-                            if (isValidData(startTime, endTime, location)) {
-                                const parsedStart = parseTime(startTime);
-                                const parsedEnd = parseTime(endTime);
-                                let parsedLocation = safeString(location).toLowerCase().trim();
-                                
-                                // Handle different location formats
-                                if (parsedLocation.includes('remote')) parsedLocation = 'remote';
-                                if (parsedLocation.includes('office')) parsedLocation = 'office';
-                                
-                                console.log(`${employeeName} Week 2 ${day}: startTime=${startTime}, endTime=${endTime}, location="${location}", parsedStart="${parsedStart}", parsedEnd="${parsedEnd}", parsedLocation="${parsedLocation}", validation=${(parsedStart && parsedEnd && (parsedLocation === 'remote' || parsedLocation === 'office'))}`);
-                                
-                                if (parsedStart && parsedEnd && (parsedLocation === 'remote' || parsedLocation === 'office')) {
-                                    // Convert times to minutes for comparison
-                                    const startMinutes = timeToMinutes(parsedStart);
-                                    const endMinutes = timeToMinutes(parsedEnd);
-                                    
-                                    // If end time is before start time, swap them
-                                    let finalStart = parsedStart;
-                                    let finalEnd = parsedEnd;
-                                    
-                                    if (endMinutes < startMinutes) {
-                                        finalStart = parsedEnd;
-                                        finalEnd = parsedStart;
-                                    }
-                                    
-                                    employee.weeks[2][day].push({
-                                        start: finalStart,
-                                        end: finalEnd,
-                                        location: parsedLocation
-                                    });
-                                }
-                            }
-                        }
-                    }
-                    
-                    scheduleData[employeeName] = employee;
-                });
-                
-                console.log('Loaded schedule data:', JSON.stringify(scheduleData, null, 2));
-                renderSchedule();
-                
-            } catch (error) {
-                console.error('Parsing error:', error);
-                document.getElementById('scheduleContent').innerHTML = `
-                    <div class="error">
-                        <div>Error parsing Excel file: ${error.message}</div>
-                        <div>Please ensure the file structure matches the expected format.</div>
-                    </div>
-                `;
-            }
-        })
-        .catch(error => {
-            console.error('Loading error:', error);
-            document.getElementById('scheduleContent').innerHTML = `
-                <div class="error">
-                    <div>Error loading TMS-WorkSchedules.xlsx: ${error.message}</div>
-                    <div>Please ensure the file is in the same directory as this HTML file.</div>
-                </div>
-            `;
-        });
-}
-
-// Rendering functions
-function renderSchedule() {
-    const currentWeek = getCurrentWeek();
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
-    const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+function renderScheduleGrid() {
+    const employeeRows = document.getElementById('employeeRows');
+    employeeRows.innerHTML = '';
     
-    let html = `
-        <div class="schedule-grid">
-            <div class="day-header first-col"></div>
-            ${dayNames.map(day => `<div class="day-header">${day}</div>`).join('')}
-    `;
+    const employees = Object.keys(employeeData).sort();
+    const colors = ['color-1', 'color-2', 'color-3', 'color-4', 'color-5', 'color-6', 
+                   'color-7', 'color-8', 'color-9', 'color-10', 'color-11', 'color-12'];
     
-    Object.values(scheduleData).forEach(employee => {
-        const color = getColorForEmployee(employee.name);
-        const initials = getInitials(employee.name);
+    employees.forEach((employeeName, index) => {
+        const employee = employeeData[employeeName];
+        const weekData = currentWeekType === 1 ? employee.week1 : employee.week2;
         
-        html += `<div class="employee-row">`;
-        html += `
-            <div class="employee-name" onclick="openModal('${employee.name}')">
-                <div class="employee-initial" style="background-color: ${color}">
-                    ${initials}
-                </div>
-                <span>${employee.name}</span>
-            </div>
+        // Skip employees with no data for current week
+        if (!hasScheduleData(weekData)) return;
+        
+        const row = document.createElement('div');
+        row.className = 'employee-row';
+        
+        // Employee info cell
+        const employeeCell = document.createElement('div');
+        employeeCell.className = 'employee-info';
+        employeeCell.onclick = () => openEmployeeModal(employeeName);
+        
+        const initials = getInitials(employeeName);
+        const colorClass = colors[index % colors.length];
+        
+        employeeCell.innerHTML = `
+            <div class="employee-initials ${colorClass}">${initials}</div>
+            <div class="employee-name">${employeeName}</div>
         `;
         
+        row.appendChild(employeeCell);
+        
+        // Day cells
+        const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
         days.forEach(day => {
-            const blocks = (employee.weeks && employee.weeks[currentWeek] && employee.weeks[currentWeek][day]) ? employee.weeks[currentWeek][day] : [];
-            html += `<div class="day-cell">`;
+            const dayCell = document.createElement('div');
+            dayCell.className = 'day-cell';
             
-            blocks.forEach(block => {
-                const icon = block.location === 'office' ? 
-                    `<svg class="work-icon" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 2L2 7v10c0 5.55 3.84 10 9 10s9-4.45 9-10V7L12 2z"/>
-                        <path d="M12 2L2 7l10 5 10-5L12 2z"/>
-                    </svg>` :
-                    `<svg class="work-icon" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-                    </svg>`;
+            const daySchedule = weekData[day] || [];
+            daySchedule.forEach(block => {
+                const workBlock = document.createElement('div');
+                workBlock.className = `work-block ${block.location.toLowerCase() === 'office' ? 'office' : 'remote'}`;
                 
-                html += `
-                    <div class="work-block ${block.location}">
-                        ${icon}
-                        <span>${block.start} - ${block.end}</span>
-                    </div>
+                const icon = block.location.toLowerCase() === 'office' ? '🏢' : '📍';
+                workBlock.innerHTML = `
+                    <span class="work-block-icon">${icon}</span>
+                    <span class="work-block-time">${block.startTime} - ${block.endTime}</span>
                 `;
+                
+                dayCell.appendChild(workBlock);
             });
             
-            html += `</div>`;
+            row.appendChild(dayCell);
         });
         
-        html += `</div>`;
+        employeeRows.appendChild(row);
     });
-    
-    html += `</div>`;
-    
-    document.getElementById('scheduleContent').innerHTML = html;
 }
 
-// Modal functions
-function openModal(employeeName) {
-    const employee = scheduleData[employeeName];
-    const currentWeek = getCurrentWeek();
-    const otherWeek = currentWeek === 1 ? 2 : 1;
+function hasScheduleData(weekData) {
+    return Object.keys(weekData).length > 0 && 
+           Object.values(weekData).some(daySchedule => daySchedule && daySchedule.length > 0);
+}
+
+function getInitials(name) {
+    return name.split(' ')
+               .map(word => word.charAt(0).toUpperCase())
+               .join('')
+               .substring(0, 2);
+}
+
+function openEmployeeModal(employeeName) {
+    const modal = document.getElementById('employeeModal');
+    const employee = employeeData[employeeName];
     
-    document.getElementById('modalTitle').textContent = `${employee.name} - Schedule`;
+    document.getElementById('modalEmployeeName').textContent = `${employeeName} - Schedule`;
     
-    let modalContent = '';
+    // Update week titles
+    document.getElementById('currentWeekTitle').textContent = `Week ${currentWeekType} (Current)`;
+    document.getElementById('otherWeekTitle').textContent = `Week ${currentWeekType === 1 ? 2 : 1}`;
     
-    [currentWeek, otherWeek].forEach((weekNum, index) => {
-        const weekTitle = index === 0 ? `Week ${weekNum} (Current)` : `Week ${weekNum}`;
+    // Render current week
+    const currentWeekData = currentWeekType === 1 ? employee.week1 : employee.week2;
+    renderModalWeek('currentWeekGrid', currentWeekData);
+    
+    // Render other week
+    const otherWeekData = currentWeekType === 1 ? employee.week2 : employee.week1;
+    renderModalWeek('otherWeekGrid', otherWeekData);
+    
+    modal.style.display = 'flex';
+}
+
+function renderModalWeek(gridId, weekData) {
+    const grid = document.getElementById(gridId);
+    grid.innerHTML = '';
+    
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+    
+    days.forEach(day => {
+        const dayDiv = document.createElement('div');
+        dayDiv.className = 'modal-day';
         
-        modalContent += `
-            <div class="week-section">
-                <h3 class="week-title">${weekTitle}</h3>
-                <div class="schedule-detail">
-        `;
+        const header = document.createElement('div');
+        header.className = 'modal-day-header';
+        header.textContent = day;
+        dayDiv.appendChild(header);
         
-        const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
-        const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+        const content = document.createElement('div');
+        content.className = 'modal-day-content';
         
-        days.forEach((day, dayIndex) => {
-            const blocks = (employee.weeks && employee.weeks[weekNum] && employee.weeks[weekNum][day]) ? employee.weeks[weekNum][day] : [];
-            
-            modalContent += `
-                <div class="day-detail">
-                    <div class="day-detail-header">${dayNames[dayIndex]}</div>
-                    <div class="day-detail-content">
-            `;
-            
-            if (blocks.length === 0) {
-                modalContent += '<div style="color: #999; font-style: italic;">No scheduled work</div>';
-            } else {
-                blocks.forEach(block => {
-                    const icon = block.location === 'office' ? 
-                        `<svg class="work-icon" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M12 2L2 7v10c0 5.55 3.84 10 9 10s9-4.45 9-10V7L12 2z"/>
-                            <path d="M12 2L2 7l10 5 10-5L12 2z"/>
-                        </svg>` :
-                        `<svg class="work-icon" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-                        </svg>`;
-                    
-                    modalContent += `
-                        <div class="detail-work-block ${block.location}">
-                            ${icon}
-                            <span>${block.start} - ${block.end}</span>
-                        </div>
-                    `;
-                });
-            }
-            
-            modalContent += `
-                    </div>
-                </div>
-            `;
-        });
+        const daySchedule = weekData[day] || [];
         
-        modalContent += `
-                </div>
-            </div>
-        `;
+        if (daySchedule.length === 0) {
+            const noWork = document.createElement('div');
+            noWork.className = 'no-work';
+            noWork.textContent = 'No scheduled work';
+            content.appendChild(noWork);
+        } else {
+            daySchedule.forEach(block => {
+                const workBlock = document.createElement('div');
+                workBlock.className = `modal-work-block ${block.location.toLowerCase() === 'office' ? 'office' : 'remote'}`;
+                
+                const icon = block.location.toLowerCase() === 'office' ? '🏢' : '📍';
+                workBlock.innerHTML = `
+                    <span class="work-block-icon">${icon}</span>
+                    <span class="work-block-time">${block.startTime} - ${block.endTime}</span>
+                `;
+                
+                content.appendChild(workBlock);
+            });
+        }
+        
+        dayDiv.appendChild(content);
+        grid.appendChild(dayDiv);
     });
-    
-    document.getElementById('modalBody').innerHTML = modalContent;
-    document.getElementById('employeeModal').style.display = 'block';
 }
 
 function closeModal() {
     document.getElementById('employeeModal').style.display = 'none';
 }
 
-// Event handlers
-window.onclick = function(event) {
-    const modal = document.getElementById('employeeModal');
-    if (event.target === modal) {
-        closeModal();
-    }
-};
+function showLoading(show) {
+    document.getElementById('loading').style.display = show ? 'flex' : 'none';
+    document.getElementById('scheduleGrid').style.display = show ? 'none' : 'block';
+}
 
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', function() {
-    updateDateRange();
-    loadScheduleFile();
-});
+function showError() {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('error').style.display = 'flex';
+    document.getElementById('scheduleGrid').style.display = 'none';
+}

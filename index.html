@@ -4,37 +4,75 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TMS Work Schedule</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
-    <div class="header">
-        <div class="date-nav">
-            <button class="nav-arrow" onclick="navigateWeek(-1)">‹</button>
-            <div class="date-range" id="dateRange">September 7-13, 2025</div>
-            <button class="nav-arrow" onclick="navigateWeek(1)">›</button>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="date-navigation">
+                <button class="nav-btn" id="prevWeek">&lt;</button>
+                <span class="date-range" id="dateRange">Loading...</span>
+                <button class="nav-btn" id="nextWeek">&gt;</button>
+            </div>
+            <div class="week-selector">
+                <select id="weekSelector">
+                    <option value="1">Week 1</option>
+                    <option value="2">Week 2</option>
+                </select>
+            </div>
         </div>
-        <select class="week-selector" id="weekSelector" onchange="switchWeek()">
-            <option value="1">Week 1</option>
-            <option value="2">Week 2</option>
-        </select>
+
+        <!-- Loading State -->
+        <div class="loading" id="loading">
+            <div class="loading-text">Loading schedule data...</div>
+        </div>
+
+        <!-- Error State -->
+        <div class="error" id="error" style="display: none;">
+            <div class="error-text">Error loading schedule data. Please check that TMS-WorkSchedules.xlsx is in the same directory.</div>
+        </div>
+
+        <!-- Schedule Grid -->
+        <div class="schedule-grid" id="scheduleGrid" style="display: none;">
+            <!-- Day Headers -->
+            <div class="day-headers">
+                <div class="employee-header">Employee</div>
+                <div class="day-header">Monday</div>
+                <div class="day-header">Tuesday</div>
+                <div class="day-header">Wednesday</div>
+                <div class="day-header">Thursday</div>
+                <div class="day-header">Friday</div>
+            </div>
+
+            <!-- Employee Rows -->
+            <div class="employee-rows" id="employeeRows">
+                <!-- Rows will be populated by JavaScript -->
+            </div>
+        </div>
     </div>
 
-    <div class="schedule-container">
-        <div id="scheduleContent">
-            <div class="loading">Loading schedule data...</div>
-        </div>
-    </div>
-
-    <!-- Modal -->
-    <div id="employeeModal" class="modal">
+    <!-- Employee Modal -->
+    <div class="modal" id="employeeModal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 class="modal-title" id="modalTitle">Employee Schedule</h2>
-                <span class="close" onclick="closeModal()">&times;</span>
+                <h2 id="modalEmployeeName">Employee Schedule</h2>
+                <button class="close-btn" id="closeModal">&times;</button>
             </div>
-            <div class="modal-body" id="modalBody">
-                <!-- Modal content will be populated here -->
+            <div class="modal-body">
+                <div class="week-section">
+                    <h3 id="currentWeekTitle">Current Week</h3>
+                    <div class="modal-schedule-grid" id="currentWeekGrid">
+                        <!-- Current week schedule -->
+                    </div>
+                </div>
+                <div class="week-section">
+                    <h3 id="otherWeekTitle">Other Week</h3>
+                    <div class="modal-schedule-grid" id="otherWeekGrid">
+                        <!-- Other week schedule -->
+                    </div>
+                </div>
             </div>
         </div>
     </div>
