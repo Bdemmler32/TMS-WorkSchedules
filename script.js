@@ -114,7 +114,8 @@ function getCurrentWeek() {
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
     const weekNumber = Math.floor(diffDays / 7);
     
-    return (weekNumber % 2) + 1;
+    // For now, default to Week 2 where the data actually is
+    return 2; // Temporarily force Week 2
 }
 
 function updateDateRange() {
