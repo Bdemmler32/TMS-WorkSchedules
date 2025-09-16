@@ -87,6 +87,20 @@ function parseTime(value) {
     }
 }
 
+function timeToMinutes(timeString) {
+    const [time, period] = timeString.split(' ');
+    const [hours, minutes] = time.split(':').map(Number);
+    let totalMinutes = hours * 60 + minutes;
+    
+    if (period === 'PM' && hours !== 12) {
+        totalMinutes += 12 * 60;
+    } else if (period === 'AM' && hours === 12) {
+        totalMinutes -= 12 * 60;
+    }
+    
+    return totalMinutes;
+}
+
 // Date and week functions
 function getCurrentWeek() {
     const now = new Date();
@@ -180,19 +194,19 @@ function loadScheduleFile() {
                         const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
                         for (let dayIndex = 0; dayIndex < days.length; dayIndex++) {
                             const day = days[dayIndex];
-                            const startCol = 4 + (dayIndex * 3); // Start time column
-                            const endCol = startCol + 1;         // End time column  
-                            const locCol = startCol + 2;         // Location column
+                            const startCol = 4 + (dayIndex * 3); // Start, End, Location columns
+                            const endCol = startCol + 1;
+                            const locCol = startCol + 2;
                             
                             const startCell = XLSX.utils.encode_cell({r: rowNum, c: startCol});
                             const endCell = XLSX.utils.encode_cell({r: rowNum, c: endCol});
                             const locCell = XLSX.utils.encode_cell({r: rowNum, c: locCol});
                             
-                            // Based on the console output, the columns seem to be: Location, End, Start
-                            // Let's try swapping them:
-                            const location = worksheet[startCell] ? worksheet[startCell].v : null;  // First column is actually location
-                            const endTime = worksheet[endCell] ? worksheet[endCell].v : null;      // Second column is end time
-                            const startTime = worksheet[locCell] ? worksheet[locCell].v : null;    // Third column is start time
+                            console.log(`Reading ${employeeName} Week 1 ${day}: cells ${startCell}, ${endCell}, ${locCell}`);
+                            
+                            const startTime = worksheet[startCell] ? worksheet[startCell].v : null;
+                            const endTime = worksheet[endCell] ? worksheet[endCell].v : null;
+                            const location = worksheet[locCell] ? worksheet[locCell].v : null;
                             
                             if (isValidData(startTime, endTime, location)) {
                                 const parsedStart = parseTime(startTime);
@@ -205,10 +219,24 @@ function loadScheduleFile() {
                                 
                                 console.log(`${employeeName} Week 1 ${day}: startTime=${startTime}, endTime=${endTime}, location="${location}", parsedStart="${parsedStart}", parsedEnd="${parsedEnd}", parsedLocation="${parsedLocation}", validation=${(parsedStart && parsedEnd && (parsedLocation === 'remote' || parsedLocation === 'office'))}`);
                                 
+                                // Ensure start time comes before end time
                                 if (parsedStart && parsedEnd && (parsedLocation === 'remote' || parsedLocation === 'office')) {
+                                    // Convert times to minutes for comparison
+                                    const startMinutes = timeToMinutes(parsedStart);
+                                    const endMinutes = timeToMinutes(parsedEnd);
+                                    
+                                    // If end time is before start time, swap them
+                                    let finalStart = parsedStart;
+                                    let finalEnd = parsedEnd;
+                                    
+                                    if (endMinutes < startMinutes) {
+                                        finalStart = parsedEnd;
+                                        finalEnd = parsedStart;
+                                    }
+                                    
                                     employee.weeks[1][day].push({
-                                        start: parsedStart,
-                                        end: parsedEnd,
+                                        start: finalStart,
+                                        end: finalEnd,
                                         location: parsedLocation
                                     });
                                 }
@@ -249,9 +277,22 @@ function loadScheduleFile() {
                                 console.log(`${employeeName} Week 2 ${day}: startTime=${startTime}, endTime=${endTime}, location="${location}", parsedStart="${parsedStart}", parsedEnd="${parsedEnd}", parsedLocation="${parsedLocation}", validation=${(parsedStart && parsedEnd && (parsedLocation === 'remote' || parsedLocation === 'office'))}`);
                                 
                                 if (parsedStart && parsedEnd && (parsedLocation === 'remote' || parsedLocation === 'office')) {
+                                    // Convert times to minutes for comparison
+                                    const startMinutes = timeToMinutes(parsedStart);
+                                    const endMinutes = timeToMinutes(parsedEnd);
+                                    
+                                    // If end time is before start time, swap them
+                                    let finalStart = parsedStart;
+                                    let finalEnd = parsedEnd;
+                                    
+                                    if (endMinutes < startMinutes) {
+                                        finalStart = parsedEnd;
+                                        finalEnd = parsedStart;
+                                    }
+                                    
                                     employee.weeks[2][day].push({
-                                        start: parsedStart,
-                                        end: parsedEnd,
+                                        start: finalStart,
+                                        end: finalEnd,
                                         location: parsedLocation
                                     });
                                 }
