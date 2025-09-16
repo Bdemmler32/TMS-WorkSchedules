@@ -74,67 +74,77 @@ function getInitials(name) {
 }
 
 function parseTime(timeValue) {
-    if (!timeValue && timeValue !== 0) return null;
-    
-    // Debug log to see what we're getting
-    console.log('Parsing time value:', timeValue, 'Type:', typeof timeValue);
-    
-    // If it's already a formatted string, return it
-    if (typeof timeValue === 'string') {
-        const cleanTime = timeValue.trim();
-        if (cleanTime.includes('AM') || cleanTime.includes('PM')) {
-            return cleanTime;
-        }
-    }
-    
-    // Handle Excel decimal time format (e.g., 0.291666666666667 = 7:00 AM)
-    if (typeof timeValue === 'number') {
-        // Convert decimal to 24-hour time
-        const totalMinutes = Math.round(timeValue * 24 * 60);
-        const hours = Math.floor(totalMinutes / 60);
-        const minutes = totalMinutes % 60;
-        
-        // Convert to 12-hour format
-        const ampm = hours >= 12 ? 'PM' : 'AM';
-        const displayHours = hours % 12 || 12;
-        const displayMinutes = minutes.toString().padStart(2, '0');
-        
-        return `${displayHours}:${displayMinutes} ${ampm}`;
-    }
-    
-    // Handle Date objects (if Excel returns them as dates)
-    if (timeValue instanceof Date) {
-        const hours = timeValue.getHours();
-        const minutes = timeValue.getMinutes();
-        const ampm = hours >= 12 ? 'PM' : 'AM';
-        const displayHours = hours % 12 || 12;
-        const displayMinutes = minutes.toString().padStart(2, '0');
-        
-        return `${displayHours}:${displayMinutes} ${ampm}`;
-    }
-    
-    // Try to parse as string for other formats - but safely
-    let cleanTime;
-    try {
-        cleanTime = String(timeValue).trim();
-    } catch (e) {
-        console.error('Error converting timeValue to string:', e);
+    // Handle null, undefined, or empty values
+    if (timeValue === null || timeValue === undefined || timeValue === '') {
         return null;
     }
     
-    // Convert 24-hour string format
-    const timeRegex = /^(\d{1,2}):(\d{2})$/;
-    const match = cleanTime.match(timeRegex);
-    
-    if (match) {
-        let hour = parseInt(match[1]);
-        const minute = match[2];
-        const ampm = hour >= 12 ? 'PM' : 'AM';
-        hour = hour % 12 || 12;
-        return `${hour}:${minute} ${ampm}`;
+    try {
+        // Handle Excel decimal time format (e.g., 0.291666666666667 = 7:00 AM)
+        if (typeof timeValue === 'number') {
+            // Convert decimal to 24-hour time
+            const totalMinutes = Math.round(timeValue * 24 * 60);
+            const hours = Math.floor(totalMinutes / 60);
+            const minutes = totalMinutes % 60;
+            
+            // Convert to 12-hour format
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            const displayHours = hours % 12 || 12;
+            const displayMinutes = minutes.toString().padStart(2, '0');
+            
+            return `${displayHours}:${displayMinutes} ${ampm}`;
+        }
+        
+        // Handle Date objects (if Excel returns them as dates)
+        if (timeValue instanceof Date) {
+            const hours = timeValue.getHours();
+            const minutes = timeValue.getMinutes();
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            const displayHours = hours % 12 || 12;
+            const displayMinutes = minutes.toString().padStart(2, '0');
+            
+            return `${displayHours}:${displayMinutes} ${ampm}`;
+        }
+        
+        // Handle string values
+        if (typeof timeValue === 'string') {
+            const cleanTime = timeValue.trim();
+            
+            // If it's already in AM/PM format, return it
+            if (cleanTime.includes('AM') || cleanTime.includes('PM')) {
+                return cleanTime;
+            }
+            
+            // Try to parse as 24-hour format
+            const timeRegex = /^(\d{1,2}):(\d{2})$/;
+            const match = cleanTime.match(timeRegex);
+            
+            if (match) {
+                let hour = parseInt(match[1]);
+                const minute = match[2];
+                const ampm = hour >= 12 ? 'PM' : 'AM';
+                hour = hour % 12 || 12;
+                return `${hour}:${minute} ${ampm}`;
+            }
+        }
+        
+        // Try to convert to string and parse
+        const stringValue = String(timeValue).trim();
+        if (stringValue && stringValue !== 'null' && stringValue !== 'undefined') {
+            return stringValue;
+        }
+        
+    } catch (error) {
+        console.error('Error parsing time value:', timeValue, error);
     }
     
-    return cleanTime;
+    return null;
+}
+
+function isValidData(start, end, location) {
+    return start !== null && start !== undefined && start !== '' &&
+           end !== null && end !== undefined && end !== '' &&
+           location !== null && location !== undefined && location !== '';
 }
 
 function loadScheduleFile() {
@@ -184,16 +194,14 @@ function loadScheduleFile() {
                             const endCell = XLSX.utils.encode_cell({r: rowNum, c: endCol});
                             const locCell = XLSX.utils.encode_cell({r: rowNum, c: locCol});
                             
-                            const startTime = worksheet[startCell] ? worksheet[startCell].v : '';
-                            const endTime = worksheet[endCell] ? worksheet[endCell].v : '';
-                            const location = worksheet[locCell] ? worksheet[locCell].v : '';
+                            const startTime = worksheet[startCell] ? worksheet[startCell].v : null;
+                            const endTime = worksheet[endCell] ? worksheet[endCell].v : null;
+                            const location = worksheet[locCell] ? worksheet[locCell].v : null;
                             
-                            // Only add if all three values exist and are not empty
-                            if (startTime && endTime && location && 
-                                startTime !== '' && endTime !== '' && location !== '') {
+                            if (isValidData(startTime, endTime, location)) {
                                 const parsedStart = parseTime(startTime);
                                 const parsedEnd = parseTime(endTime);
-                                const parsedLocation = typeof location === 'string' ? location.toLowerCase().trim() : String(location).toLowerCase().trim();
+                                const parsedLocation = String(location).toLowerCase().trim();
                                 
                                 if (parsedStart && parsedEnd && parsedLocation) {
                                     employee.weeks[1][day].push({
@@ -221,20 +229,14 @@ function loadScheduleFile() {
                             const endCell = XLSX.utils.encode_cell({r: rowNum, c: endCol});
                             const locCell = XLSX.utils.encode_cell({r: rowNum, c: locCol});
                             
-                            const startTime = worksheet[startCell] ? worksheet[startCell].v : '';
-                            const endTime = worksheet[endCell] ? worksheet[endCell].v : '';
-                            const location = worksheet[locCell] ? worksheet[locCell].v : '';
+                            const startTime = worksheet[startCell] ? worksheet[startCell].v : null;
+                            const endTime = worksheet[endCell] ? worksheet[endCell].v : null;
+                            const location = worksheet[locCell] ? worksheet[locCell].v : null;
                             
-                            const startTime = worksheet[startCell] ? worksheet[startCell].v : '';
-                            const endTime = worksheet[endCell] ? worksheet[endCell].v : '';
-                            const location = worksheet[locCell] ? worksheet[locCell].v : '';
-                            
-                            // Only add if all three values exist and are not empty
-                            if (startTime && endTime && location && 
-                                startTime !== '' && endTime !== '' && location !== '') {
+                            if (isValidData(startTime, endTime, location)) {
                                 const parsedStart = parseTime(startTime);
                                 const parsedEnd = parseTime(endTime);
-                                const parsedLocation = typeof location === 'string' ? location.toLowerCase().trim() : String(location).toLowerCase().trim();
+                                const parsedLocation = String(location).toLowerCase().trim();
                                 
                                 if (parsedStart && parsedEnd && parsedLocation) {
                                     employee.weeks[2][day].push({
@@ -250,9 +252,11 @@ function loadScheduleFile() {
                     scheduleData[employeeName] = employee;
                 });
                 
+                console.log('Loaded schedule data:', scheduleData);
                 renderSchedule();
                 
             } catch (error) {
+                console.error('Parsing error:', error);
                 document.getElementById('scheduleContent').innerHTML = `
                     <div class="error">
                         <div>Error parsing Excel file: ${error.message}</div>
@@ -262,6 +266,7 @@ function loadScheduleFile() {
             }
         })
         .catch(error => {
+            console.error('Loading error:', error);
             document.getElementById('scheduleContent').innerHTML = `
                 <div class="error">
                     <div>Error loading TMS-WorkSchedules.xlsx: ${error.message}</div>
