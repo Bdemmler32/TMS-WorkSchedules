@@ -10,47 +10,60 @@
 </head>
 <body>
     <div class="container">
-        <!-- Header -->
-        <div class="header">
-            <div class="date-navigation">
-                <button class="nav-btn" id="prevWeek">&lt;</button>
-                <span class="date-range" id="dateRange">Loading...</span>
-                <button class="nav-btn" id="nextWeek">&gt;</button>
+        <!-- Single Unified Container -->
+        <div class="unified-container" id="unifiedContainer">
+            <!-- Header Section -->
+            <div class="header-section">
+                <h1>TMS Staff Work Schedules</h1>
+                <button class="collapse-btn" id="collapseBtn">
+                    <i class="fas fa-chevron-down" id="collapseIcon"></i>
+                </button>
             </div>
-            <div class="week-selector">
-                <select id="weekSelector">
-                    <option value="1">Week 1</option>
-                    <option value="2">Week 2</option>
-                </select>
-            </div>
-        </div>
 
-        <!-- Loading State -->
-        <div class="loading" id="loading">
-            <div class="loading-text">Loading schedule data...</div>
-        </div>
-
-        <!-- Error State -->
-        <div class="error" id="error" style="display: none;">
-            <div class="error-text">Error loading schedule data. Please check that TMS-WorkSchedules.xlsx is in the same directory.</div>
-        </div>
-
-        <!-- Schedule Grid -->
-        <div class="schedule-body" id="scheduleBody" style="display: none;">
-            <div class="schedule-grid" id="scheduleGrid">
-                <!-- Day Headers -->
-                <div class="day-headers">
-                    <div class="employee-header">Employee</div>
-                    <div class="day-header">Monday</div>
-                    <div class="day-header">Tuesday</div>
-                    <div class="day-header">Wednesday</div>
-                    <div class="day-header">Thursday</div>
-                    <div class="day-header">Friday</div>
+            <!-- Expandable Content -->
+            <div class="expandable-content" id="expandableContent">
+                <!-- Rule Separator -->
+                <div class="section-separator"></div>
+                
+                <!-- Date Navigation Section -->
+                <div class="date-section">
+                    <div class="date-navigation">
+                        <button class="nav-btn" id="prevWeek">&lt;</button>
+                        <div class="date-range-container">
+                            <span class="date-range" id="dateRange">Loading...</span>
+                        </div>
+                        <button class="nav-btn" id="nextWeek">&gt;</button>
+                    </div>
+                    <div class="week-selector">
+                        <button class="jump-today-btn" id="jumpTodayBtn">Jump to Today</button>
+                        <button class="filter-btn" id="filterBtn">Filter Options</button>
+                        <span class="week-display" id="weekDisplay">Week 1</span>
+                    </div>
                 </div>
 
-                <!-- Employee Rows -->
-                <div class="employee-rows" id="employeeRows">
-                    <!-- Rows will be populated by JavaScript -->
+                <!-- Loading State -->
+                <div class="loading" id="loading">
+                    <div class="loading-text">Loading schedule data...</div>
+                </div>
+
+                <!-- Error State -->
+                <div class="error" id="error" style="display: none;">
+                    <div class="error-text">Error loading schedule data. Please check that TMS-WorkSchedules.xlsx is in the same directory.</div>
+                </div>
+
+                <!-- Schedule Grid -->
+                <div class="schedule-body" id="scheduleBody" style="display: none;">
+                    <div class="schedule-grid" id="scheduleGrid">
+                        <!-- Headers and employee rows will be populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Rule Separator -->
+                <div class="section-separator" id="bottomSeparator" style="display: none;"></div>
+
+                <!-- Filter Results Indicator -->
+                <div class="filter-results" id="filterResults" style="display: none;">
+                    <span id="filterResultsText">Loading...</span>
                 </div>
             </div>
         </div>
@@ -74,6 +87,34 @@
                     <h3 id="otherWeekTitle">Other Week</h3>
                     <div class="modal-schedule-grid" id="otherWeekGrid">
                         <!-- Other week schedule -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Employee Filter Modal -->
+    <div class="modal" id="employeeFilterModal" style="display: none;">
+        <div class="modal-content filter-modal-content">
+            <div class="modal-header">
+                <h2>Filter Employees</h2>
+                <button class="close-btn" id="closeFilterModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="search-container">
+                    <input type="text" id="employeeSearch" placeholder="Search employees by first or last name...">
+                </div>
+                <div class="employee-list" id="employeeFilterList">
+                    <!-- Employee checkboxes will be populated here -->
+                </div>
+                <div class="filter-actions">
+                    <button class="office-hours-filter-btn" id="officeHoursFilterBtn">
+                        <i class="fas fa-building"></i> Filter Office Hours
+                    </button>
+                    <div class="filter-action-buttons">
+                        <button class="select-all-btn" id="selectAllBtn">Select All</button>
+                        <button class="deselect-all-btn" id="deselectAllBtn">Deselect All</button>
+                        <button class="apply-filter-btn" id="applyFilterBtn">Apply</button>
                     </div>
                 </div>
             </div>

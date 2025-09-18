@@ -8,41 +8,116 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background-color: #f5f5f5;
     color: #333;
+    font-size: 12px;
 }
 
 .container {
-    max-width: 1400px;
+    max-width: 960px;
     margin: 0 auto;
     min-height: 100vh;
+    padding: 20px 10px;
 }
 
-/* Header */
-.header {
+/* Unified Container */
+.unified-container {
     background: white;
-    border-bottom: 1px solid #e0e0e0;
-    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.unified-container.collapsed {
+    border-radius: 20px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Header Section */
+.header-section {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    padding: 20px;
+}
+
+.header-section h1 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+}
+
+.collapse-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 4px;
+    color: #666;
+    transition: all 0.2s;
+    font-size: 14px;
+}
+
+.collapse-btn:hover {
+    background: #f0f0f0;
+    color: #333;
+}
+
+.collapse-btn i {
+    transition: transform 0.3s ease;
+}
+
+/* Expandable Content */
+.expandable-content {
+    transition: max-height 0.3s ease, opacity 0.3s ease;
+    max-height: 5000px;
+    opacity: 1;
+    overflow: hidden;
+}
+
+.expandable-content.collapsed {
+    max-height: 0;
+    opacity: 0;
+}
+
+/* Section Separators */
+.section-separator {
+    height: 1px;
+    background: #e0e0e0;
+    margin: 0;
+}
+
+/* Date Section */
+.date-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
 }
 
 .date-navigation {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 12px;
+}
+
+.date-range-container {
+    min-width: 280px;
+    display: flex;
+    justify-content: center;
 }
 
 .nav-btn {
     background: #f0f0f0;
     border: 1px solid #ddd;
     border-radius: 6px;
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    font-size: 16px;
+    font-size: 14px;
     transition: background-color 0.2s;
 }
 
@@ -51,19 +126,52 @@ body {
 }
 
 .date-range {
-    font-size: 18px;
+    font-size: 13px;
     font-weight: 500;
-    min-width: 280px;
     text-align: center;
 }
 
-.week-selector select {
-    padding: 8px 12px;
+.week-selector {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.jump-today-btn, .filter-btn {
+    padding: 6px 12px;
     border: 1px solid #ddd;
     border-radius: 6px;
-    font-size: 14px;
+    font-size: 12px;
     background: white;
     cursor: pointer;
+    transition: background-color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.jump-today-btn:hover, .filter-btn:hover {
+    background: #f0f0f0;
+}
+
+.filter-btn.clear-mode {
+    background: #fee;
+    border-color: #d32f2f;
+    color: #d32f2f;
+}
+
+.filter-btn.clear-mode:hover {
+    background: #ffebee;
+}
+
+.week-display {
+    padding: 6px 12px;
+    background: #e3f2fd;
+    border: 1px solid #1976d2;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #1976d2;
 }
 
 /* Loading and Error States */
@@ -71,11 +179,11 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 60px 20px;
+    padding: 40px 20px;
 }
 
 .loading-text, .error-text {
-    font-size: 16px;
+    font-size: 12px;
     color: #666;
 }
 
@@ -83,118 +191,197 @@ body {
     color: #d32f2f;
 }
 
+
+
 /* Schedule Body */
 .schedule-body {
-    margin: 20px;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-}
-
-/* Schedule Grid */
-.schedule-grid {
     padding: 0;
 }
 
-.day-headers {
+/* Schedule Grid Container */
+.schedule-grid {
     display: grid;
-    grid-template-columns: 200px repeat(5, 1fr);
-    background: #f8f9fa;
-    border-bottom: 2px solid #e0e0e0;
-    position: sticky;
-    top: 0;
-    z-index: 10;
+    grid-template-columns: 140px repeat(5, 1fr);
+    gap: 0;
+    font-size: 12px;
 }
 
-.employee-header, .day-header {
-    padding: 16px 12px;
-    font-weight: 600;
-    text-align: center;
+/* Grid Cells - Headers and Data */
+.grid-cell {
+    padding: 8px;
     border-right: 1px solid #e0e0e0;
+    border-bottom: 1px solid #e0e0e0;
     box-sizing: border-box;
 }
 
-.employee-header {
-    text-align: left;
-    background: #fff;
+/* Remove left border from Employee column */
+.grid-cell:nth-child(6n+1) {
+    border-left: none;
 }
 
-/* Employee Rows */
-.employee-row {
-    display: grid;
-    grid-template-columns: 200px repeat(5, 1fr);
-    border-bottom: 1px solid #e0e0e0;
-    min-height: 80px;
-    background: white;
+/* Remove right border from Friday column */
+.grid-cell:nth-child(6n) {
+    border-right: none;
 }
 
-.employee-row:nth-child(even) {
-    background: #fafafa;
-}
-
-.employee-row:hover {
-    background: #f0f7ff;
-}
-
-.employee-row:last-child {
+/* Remove bottom border from last row of employees */
+.schedule-grid .grid-cell:nth-last-child(-n+6) {
     border-bottom: none;
 }
 
-.employee-info {
-    padding: 12px;
-    border-right: 1px solid #e0e0e0;
+/* Header Cells */
+.header-cell {
+    background: #f8f9fa;
+    font-weight: 600;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    position: relative;
+    min-height: 50px;
     display: flex;
     align-items: center;
-    gap: 12px;
-    cursor: pointer;
-    transition: background-color 0.2s;
-    box-sizing: border-box;
+    justify-content: center;
+    font-size: 12px;
+    flex-direction: column;
+    border-top: 1px solid #e0e0e0;
 }
 
-.employee-info:hover {
-    background-color: #f8f9fa;
+.header-cell.employee-header {
+    text-align: left;
+    background: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-direction: row;
+}
+
+.employee-header-content {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.name-sort-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 3px;
+    border-radius: 3px;
+    color: #666;
+    transition: all 0.2s;
+    font-size: 12px;
+}
+
+.name-sort-btn:hover {
+    background: #f0f0f0;
+    color: #333;
+}
+
+.name-sort-btn.active {
+    color: #1976d2;
+    background: #e3f2fd;
+}
+
+.header-cell.current-day {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.header-cell.current-day::after {
+    content: 'Today';
+    font-size: 9px;
+    display: block;
+    margin-top: 2px;
+    font-weight: normal;
+    line-height: 1;
+}
+
+/* Employee Cells */
+.employee-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    background: white;
+}
+
+.employee-cell:hover {
+    background-color: #f0f7ff;
+}
+
+/* Day Cells */
+.day-cell {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: stretch;
+    gap: 3px;
+    min-height: 60px;
+    background: white;
+    padding: 6px;
+}
+
+.day-cell.current-day {
+    background: #f3f8ff;
+    /* Removed border-left: 3px solid #1976d2; */
+}
+
+/* Hover effect for employee rows */
+.schedule-grid .grid-cell.employee-row-hover {
+    background-color: #f0f7ff !important;
+}
+
+.schedule-grid .grid-cell.employee-row-hover.current-day {
+    background-color: #e1f5fe !important;
 }
 
 .employee-initials {
-    width: 40px;
-    height: 40px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
     font-weight: 600;
-    font-size: 14px;
+    font-size: 11px;
     flex-shrink: 0;
 }
 
+/* Employee Names */
 .employee-name {
     font-weight: 500;
-    font-size: 14px;
-}
-
-.day-cell {
-    padding: 8px;
-    border-right: 1px solid #e0e0e0;
+    font-size: 12px;
+    line-height: 1.2;
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    min-height: 80px;
-    box-sizing: border-box;
+}
+
+.employee-first-name {
+    font-weight: 500;
+    font-size: 12px;
+}
+
+.employee-last-name {
+    font-weight: 500;
+    font-size: 12px;
+    color: #333;
+    margin-top: 1px;
 }
 
 /* Work Blocks */
 .work-block {
     background: #d1c4e9;
     color: #4a148c;
-    border-radius: 16px;
-    padding: 6px 10px;
+    border-radius: 12px;
+    padding: 4px 6px;
     font-size: 12px;
     display: flex;
     align-items: center;
-    gap: 6px;
-    min-height: 28px;
+    gap: 4px;
+    min-height: 22px;
 }
 
 .work-block.office {
@@ -203,15 +390,39 @@ body {
 }
 
 .work-block-icon {
-    font-size: 12px;
-    width: 14px;
+    font-size: 9px;
+    width: 12px;
     text-align: center;
 }
 
 .work-block-time {
     font-weight: 500;
     white-space: nowrap;
+    font-size: 12px;
 }
+
+/* Filter Results */
+.filter-results {
+    padding: 10px 20px;
+    font-size: 12px;
+    color: #666;
+    text-align: center;
+    background: #f8f9fa;
+}
+
+/* Employee Colors */
+.color-1 { background-color: #e53e3e; }
+.color-2 { background-color: #dd6b20; }
+.color-3 { background-color: #d69e2e; }
+.color-4 { background-color: #38a169; }
+.color-5 { background-color: #00a3c4; }
+.color-6 { background-color: #3182ce; }
+.color-7 { background-color: #805ad5; }
+.color-8 { background-color: #d53f8c; }
+.color-9 { background-color: #319795; }
+.color-10 { background-color: #2b6cb0; }
+.color-11 { background-color: #2d3748; }
+.color-12 { background-color: #744210; }
 
 /* Modal */
 .modal {
@@ -234,6 +445,11 @@ body {
     max-width: 1000px;
     max-height: 85vh;
     overflow-y: auto;
+}
+
+.filter-modal-content {
+    width: 95%;
+    max-width: 500px;
 }
 
 .modal-header {
@@ -286,7 +502,7 @@ body {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     gap: 12px;
-    min-width: 0; /* Prevent grid overflow */
+    min-width: 0;
 }
 
 .modal-day {
@@ -294,7 +510,7 @@ body {
     border-radius: 6px;
     padding: 12px;
     min-height: 120px;
-    min-width: 0; /* Prevent overflow */
+    min-width: 0;
     overflow-wrap: break-word;
 }
 
@@ -336,66 +552,172 @@ body {
     margin-top: 20px;
 }
 
-/* Employee Colors */
-.color-1 { background-color: #e53e3e; }
-.color-2 { background-color: #dd6b20; }
-.color-3 { background-color: #d69e2e; }
-.color-4 { background-color: #38a169; }
-.color-5 { background-color: #00a3c4; }
-.color-6 { background-color: #3182ce; }
-.color-7 { background-color: #805ad5; }
-.color-8 { background-color: #d53f8c; }
-.color-9 { background-color: #319795; }
-.color-10 { background-color: #2b6cb0; }
-.color-11 { background-color: #2d3748; }
-.color-12 { background-color: #744210; }
+/* Filter Modal Styles */
+.search-container {
+    margin-bottom: 20px;
+}
+
+.search-container input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.employee-list {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 20px;
+}
+
+.employee-checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.employee-checkbox-item:hover {
+    background: #f8f9fa;
+}
+
+.employee-checkbox-item input[type="checkbox"] {
+    margin: 0;
+}
+
+.employee-checkbox-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+}
+
+.employee-checkbox-initials {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 10px;
+    flex-shrink: 0;
+}
+
+.filter-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.office-hours-filter-btn {
+    padding: 8px 16px;
+    border: 1px solid #d69e2e;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background-color 0.2s;
+    background: #ffeaa7;
+    color: #2d3436;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.office-hours-filter-btn:hover {
+    background: #ffdd70;
+}
+
+.office-hours-filter-btn.active {
+    background: #e8f5e8;
+    border-color: #4caf50;
+    color: #2e7d32;
+}
+
+.office-hours-filter-btn.active:hover {
+    background: #f1f8e9;
+}
+
+.filter-action-buttons {
+    display: flex;
+    gap: 12px;
+}
+
+.filter-action-buttons button {
+    padding: 8px 16px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background-color 0.2s;
+}
+
+.select-all-btn, .deselect-all-btn {
+    background: white;
+}
+
+.select-all-btn:hover, .deselect-all-btn:hover {
+    background: #f0f0f0;
+}
+
+.apply-filter-btn {
+    background: #1976d2;
+    color: white;
+    border-color: #1976d2;
+}
+
+.apply-filter-btn:hover {
+    background: #1565c0;
+}
 
 /* Responsive */
 @media (max-width: 768px) {
     .container {
-        margin: 0;
+        padding: 10px 5px;
     }
     
-    .header {
+    .header-section {
         padding: 15px;
+    }
+    
+    .date-section {
         flex-direction: column;
         gap: 15px;
+        padding: 15px;
     }
     
-    .schedule-body {
-        margin: 10px;
-        border-radius: 8px;
+    .schedule-grid {
+        grid-template-columns: 120px repeat(5, 1fr);
+        font-size: 11px;
     }
     
-    .day-headers {
-        grid-template-columns: 150px repeat(5, 1fr);
-    }
-    
-    .employee-row {
-        grid-template-columns: 150px repeat(5, 1fr);
-    }
-    
-    .employee-info {
-        padding: 8px;
-    }
-    
-    .employee-initials {
-        width: 32px;
-        height: 32px;
-        font-size: 12px;
-    }
-    
-    .employee-name {
-        font-size: 12px;
-    }
-    
-    .day-cell {
+    .grid-cell {
         padding: 6px;
     }
     
-    .work-block {
+    .employee-initials {
+        width: 28px;
+        height: 28px;
         font-size: 10px;
-        padding: 4px 6px;
+    }
+    
+    .employee-name {
+        font-size: 11px;
+    }
+    
+    .work-block {
+        font-size: 9px;
+        padding: 3px 5px;
     }
     
     .modal-content {
