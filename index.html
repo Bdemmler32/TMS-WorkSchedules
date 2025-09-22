@@ -108,9 +108,13 @@
                     <!-- Employee checkboxes will be populated here -->
                 </div>
                 <div class="filter-actions">
-                    <button class="office-hours-filter-btn" id="officeHoursFilterBtn">
-                        <i class="fas fa-building"></i> Filter Office Hours
-                    </button>
+                    <div class="office-hours-filter-checkbox">
+                        <input type="checkbox" id="officeHoursCheckbox">
+                        <label for="officeHoursCheckbox" class="office-hours-label">
+                            <i class="fas fa-building"></i>
+                            <span>Display Office Hours Only</span>
+                        </label>
+                    </div>
                     <div class="filter-action-buttons">
                         <button class="select-all-btn" id="selectAllBtn">Select All</button>
                         <button class="deselect-all-btn" id="deselectAllBtn">Deselect All</button>

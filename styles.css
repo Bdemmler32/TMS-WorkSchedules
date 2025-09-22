@@ -191,8 +191,6 @@ body {
     color: #d32f2f;
 }
 
-
-
 /* Schedule Body */
 .schedule-body {
     padding: 0;
@@ -449,7 +447,7 @@ body {
 
 .filter-modal-content {
     width: 95%;
-    max-width: 500px;
+    max-width: 600px;
 }
 
 .modal-header {
@@ -613,6 +611,8 @@ body {
     flex-shrink: 0;
 }
 
+/* Filter Criteria Section - Removed since it's now inline */
+
 .filter-actions {
     display: flex;
     justify-content: space-between;
@@ -620,32 +620,30 @@ body {
     gap: 12px;
 }
 
-.office-hours-filter-btn {
-    padding: 8px 16px;
-    border: 1px solid #d69e2e;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 12px;
-    transition: background-color 0.2s;
-    background: #ffeaa7;
-    color: #2d3436;
+.office-hours-filter-checkbox {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 10px;
 }
 
-.office-hours-filter-btn:hover {
-    background: #ffdd70;
+.office-hours-filter-checkbox input[type="checkbox"] {
+    margin: 0;
 }
 
-.office-hours-filter-btn.active {
-    background: #e8f5e8;
-    border-color: #4caf50;
-    color: #2e7d32;
+.office-hours-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    color: #2d3436;
+    user-select: none;
 }
 
-.office-hours-filter-btn.active:hover {
-    background: #f1f8e9;
+.office-hours-label i {
+    color: #d69e2e;
+    font-size: 14px;
 }
 
 .filter-action-buttons {
@@ -729,5 +727,14 @@ body {
     .modal-schedule-grid {
         grid-template-columns: 1fr;
         gap: 8px;
+    }
+    
+    .filter-modal-content {
+        max-width: 95%;
+    }
+    
+    .filter-actions {
+        flex-direction: column;
+        gap: 12px;
     }
 }

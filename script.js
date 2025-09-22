@@ -50,7 +50,7 @@ function initializeEventListeners() {
     document.getElementById('selectAllBtn').addEventListener('click', selectAllEmployees);
     document.getElementById('deselectAllBtn').addEventListener('click', deselectAllEmployees);
     document.getElementById('applyFilterBtn').addEventListener('click', applyEmployeeFilter);
-    document.getElementById('officeHoursFilterBtn').addEventListener('click', toggleOfficeHoursFilter);
+    document.getElementById('officeHoursCheckbox').addEventListener('change', toggleOfficeHoursFilter);
     
     // Employee search
     document.getElementById('employeeSearch').addEventListener('input', filterEmployeeList);
@@ -260,21 +260,8 @@ function toggleNameSort() {
 }
 
 function toggleOfficeHoursFilter() {
-    officeHoursOnly = !officeHoursOnly;
-    updateOfficeHoursFilterButton();
-}
-
-function updateOfficeHoursFilterButton() {
-    const btn = document.getElementById('officeHoursFilterBtn');
-    if (btn) {
-        if (officeHoursOnly) {
-            btn.classList.add('active');
-            btn.innerHTML = '<i class="fas fa-building"></i> Clear Office Filter';
-        } else {
-            btn.classList.remove('active');
-            btn.innerHTML = '<i class="fas fa-building"></i> Filter Office Hours';
-        }
-    }
+    const checkbox = document.getElementById('officeHoursCheckbox');
+    officeHoursOnly = checkbox.checked;
 }
 
 function hasOfficeHours(employee, weekData) {
@@ -595,7 +582,7 @@ function handleFilterBtn() {
 function openEmployeeFilterModal() {
     const modal = document.getElementById('employeeFilterModal');
     populateEmployeeFilterList();
-    updateOfficeHoursFilterButton();
+    updateOfficeHoursCheckbox();
     
     // Clear search bar when opening modal
     const searchInput = document.getElementById('employeeSearch');
@@ -604,10 +591,46 @@ function openEmployeeFilterModal() {
     }
     
     modal.style.display = 'flex';
+    
+    // Focus the search input after modal is displayed
+    setTimeout(() => {
+        if (searchInput) {
+            searchInput.focus();
+        }
+    }, 100);
+}
+
+function scrollToEmployee(employeeItem) {
+    const employeeList = document.getElementById('employeeFilterList');
+    if (employeeList && employeeItem) {
+        // Calculate the position to scroll to center the selected employee
+        const listRect = employeeList.getBoundingClientRect();
+        const itemRect = employeeItem.getBoundingClientRect();
+        const listScrollTop = employeeList.scrollTop;
+        
+        // Calculate the desired scroll position (center the item in the visible area)
+        const itemRelativeTop = itemRect.top - listRect.top + listScrollTop;
+        const listHeight = employeeList.clientHeight;
+        const itemHeight = employeeItem.offsetHeight;
+        const desiredScrollTop = itemRelativeTop - (listHeight / 2) + (itemHeight / 2);
+        
+        // Smooth scroll to the calculated position
+        employeeList.scrollTo({
+            top: Math.max(0, desiredScrollTop),
+            behavior: 'smooth'
+        });
+    }
 }
 
 function closeFilterModal() {
     document.getElementById('employeeFilterModal').style.display = 'none';
+}
+
+function updateOfficeHoursCheckbox() {
+    const checkbox = document.getElementById('officeHoursCheckbox');
+    if (checkbox) {
+        checkbox.checked = officeHoursOnly;
+    }
 }
 
 function populateEmployeeFilterList() {
@@ -655,6 +678,13 @@ function populateEmployeeFilterList() {
                 allItems.forEach(allItem => {
                     allItem.style.display = 'flex';
                 });
+                
+                // Scroll to the clicked employee and focus search
+                scrollToEmployee(item);
+                // Re-focus the search input for next search
+                setTimeout(() => {
+                    searchInput.focus();
+                }, 100);
             }
         });
         
