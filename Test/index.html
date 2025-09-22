@@ -1,1 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TMS Work Schedule</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Single Unified Container -->
+        <div class="unified-container" id="unifiedContainer">
+            <!-- Header Section -->
+            <div class="header-section">
+                <h1>TMS Staff Work Schedules</h1>
+                <button class="collapse-btn" id="collapseBtn">
+                    <i class="fas fa-chevron-down" id="collapseIcon"></i>
+                </button>
+            </div>
 
+            <!-- Expandable Content -->
+            <div class="expandable-content" id="expandableContent">
+                <!-- Rule Separator -->
+                <div class="section-separator"></div>
+                
+                <!-- Date Navigation Section -->
+                <div class="date-section">
+                    <div class="date-navigation">
+                        <button class="nav-btn" id="prevWeek">&lt;</button>
+                        <div class="date-range-container">
+                            <span class="date-range clickable-date" id="dateRange">Loading...</span>
+                        </div>
+                        <button class="nav-btn" id="nextWeek">&gt;</button>
+                    </div>
+                    <div class="week-selector">
+                        <button class="jump-today-btn" id="jumpTodayBtn">Jump to Today</button>
+                        <button class="filter-btn" id="filterBtn">Filter Options</button>
+                        <span class="week-display" id="weekDisplay">Week 1</span>
+                    </div>
+                </div>
+
+                <!-- Loading State -->
+                <div class="loading" id="loading">
+                    <div class="loading-text">Loading schedule data...</div>
+                </div>
+
+                <!-- Error State -->
+                <div class="error" id="error" style="display: none;">
+                    <div class="error-text">Error loading schedule data. Please check that TMS-WorkSchedules.xlsx is in the same directory.</div>
+                </div>
+
+                <!-- Schedule Grid -->
+                <div class="schedule-body" id="scheduleBody" style="display: none;">
+                    <div class="schedule-grid" id="scheduleGrid">
+                        <!-- Headers and employee rows will be populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Rule Separator -->
+                <div class="section-separator" id="bottomSeparator" style="display: none;"></div>
+
+                <!-- Filter Results Indicator -->
+                <div class="filter-results" id="filterResults" style="display: none;">
+                    <span id="filterResultsText">Loading...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Employee Modal -->
+    <div class="modal" id="employeeModal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalEmployeeName">Employee Schedule</h2>
+                <button class="close-btn" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="week-section">
+                    <h3 id="currentWeekTitle">Current Week</h3>
+                    <div class="modal-schedule-grid" id="currentWeekGrid">
+                        <!-- Current week schedule -->
+                    </div>
+                </div>
+                <div class="week-section">
+                    <h3 id="otherWeekTitle">Other Week</h3>
+                    <div class="modal-schedule-grid" id="otherWeekGrid">
+                        <!-- Other week schedule -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Employee Filter Modal -->
+    <div class="modal" id="employeeFilterModal" style="display: none;">
+        <div class="modal-content filter-modal-content">
+            <div class="modal-header">
+                <h2>Filter Employees</h2>
+                <button class="close-btn" id="closeFilterModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="search-container">
+                    <input type="text" id="employeeSearch" placeholder="Search employees by first or last name...">
+                </div>
+                <div class="employee-list" id="employeeFilterList">
+                    <!-- Employee checkboxes will be populated here -->
+                </div>
+                <div class="filter-actions">
+                    <div class="office-hours-filter-checkbox">
+                        <input type="checkbox" id="officeHoursCheckbox">
+                        <label for="officeHoursCheckbox" class="office-hours-label">
+                            <i class="fas fa-building"></i>
+                            <span>Display Office Hours Only</span>
+                        </label>
+                    </div>
+                    <div class="filter-action-buttons">
+                        <button class="select-all-btn" id="selectAllBtn">Select All</button>
+                        <button class="deselect-all-btn" id="deselectAllBtn">Deselect All</button>
+                        <button class="apply-filter-btn" id="applyFilterBtn">Apply</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calendar Modal -->
+    <div class="modal" id="calendarModal" style="display: none;">
+        <div class="modal-content calendar-modal-content">
+            <div class="modal-header">
+                <h2>Select Work Week</h2>
+                <button class="close-btn" id="closeCalendarModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="calendar-controls">
+                    <button class="calendar-nav-btn" id="prevMonth">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <div class="calendar-month-year" id="calendarMonthYear">
+                        January 2025
+                    </div>
+                    <button class="calendar-nav-btn" id="nextMonth">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+                <div class="calendar-grid" id="calendarGrid">
+                    <!-- Calendar will be populated by JavaScript -->
+                </div>
+                <div class="calendar-actions">
+                    <button class="today-btn" id="todayBtn">Today</button>
+                    <div class="calendar-action-buttons">
+                        <button class="cancel-btn" id="cancelCalendarBtn">Cancel</button>
+                        <button class="apply-btn" id="applyCalendarBtn">Apply</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
