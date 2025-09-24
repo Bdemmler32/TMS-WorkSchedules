@@ -104,7 +104,7 @@ async function loadScheduleData() {
 
 function processWorkbookData(workbook) {
     const validSheets = workbook.SheetNames.filter(name => 
-        name !== 'NewEmployee' && name !== 'FormTools'
+        name !== 'NewEmployee' && name !== 'FormTools' && name !== 'Admin'
     );
     
     const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
