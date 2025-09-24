@@ -652,9 +652,11 @@ function updateLastUpdatedDisplay() {
         
         // Check if it's an Excel serial date number (typically > 1000)
         if (typeof lastUpdatedDate === 'number' && lastUpdatedDate > 1000) {
-            // Convert Excel serial number to JavaScript date
+            // Convert Excel serial number to JavaScript date with timezone correction
             const excelDate = new Date((lastUpdatedDate - 25569) * 86400 * 1000);
-            dateString = excelDate.toLocaleDateString('en-US', {
+            // Add timezone offset to prevent date shifting
+            const correctedDate = new Date(excelDate.getTime() + (excelDate.getTimezoneOffset() * 60 * 1000));
+            dateString = correctedDate.toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'numeric',
                 day: 'numeric'
