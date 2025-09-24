@@ -105,7 +105,7 @@ async function loadScheduleData() {
 
 function processWorkbookData(workbook) {
     const validSheets = workbook.SheetNames.filter(name => 
-        name !== 'NewEmployee' && name !== 'FormTools'
+        name !== 'NewEmployee' && name !== 'FormTools' && name !== 'Admin'
     );
     
     // Read last updated date from Admin sheet if it exists
@@ -631,23 +631,28 @@ function renderScheduleGrid() {
 }
 
 function updateLastUpdatedDisplay() {
-    // Add or update the last updated date display inside filter results
+    // Add or update the last updated date display as separate element
     let lastUpdatedElement = document.getElementById('lastUpdatedDate');
-    const filterResults = document.getElementById('filterResults');
     
-    if (lastUpdatedDate && filterResults) {
+    if (lastUpdatedDate) {
         if (!lastUpdatedElement) {
-            // Create the element if it doesn't exist
-            lastUpdatedElement = document.createElement('span');
+            // Create the element if it doesn't exist - should already exist in HTML
+            lastUpdatedElement = document.createElement('div');
             lastUpdatedElement.id = 'lastUpdatedDate';
             lastUpdatedElement.className = 'last-updated-date';
-            filterResults.appendChild(lastUpdatedElement);
+            
+            const filterResults = document.getElementById('filterResults');
+            if (filterResults) {
+                filterResults.parentNode.insertBefore(lastUpdatedElement, filterResults.nextSibling);
+            }
         }
         
-        // Format the date
+        // Format the date - handle both Excel serial numbers and actual values
         let dateString = lastUpdatedDate;
-        if (typeof lastUpdatedDate === 'number') {
-            // Excel date serial number to JavaScript date
+        
+        // Check if it's an Excel serial date number (typically > 1000)
+        if (typeof lastUpdatedDate === 'number' && lastUpdatedDate > 1000) {
+            // Convert Excel serial number to JavaScript date
             const excelDate = new Date((lastUpdatedDate - 25569) * 86400 * 1000);
             dateString = excelDate.toLocaleDateString('en-US', {
                 year: 'numeric',
@@ -655,15 +660,32 @@ function updateLastUpdatedDisplay() {
                 day: 'numeric'
             });
         } else if (lastUpdatedDate instanceof Date) {
+            // It's already a date object
             dateString = lastUpdatedDate.toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'numeric',
                 day: 'numeric'
             });
+        } else if (typeof lastUpdatedDate === 'string') {
+            // If it's a string, try to parse it as a date
+            const parsedDate = new Date(lastUpdatedDate);
+            if (!isNaN(parsedDate.getTime())) {
+                dateString = parsedDate.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'numeric',
+                    day: 'numeric'
+                });
+            } else {
+                // If it can't be parsed as a date, use it as-is
+                dateString = lastUpdatedDate.toString();
+            }
+        } else {
+            // Use the raw value converted to string
+            dateString = lastUpdatedDate.toString();
         }
         
         lastUpdatedElement.textContent = `Last Updated: ${dateString}`;
-        lastUpdatedElement.style.display = 'inline';
+        lastUpdatedElement.style.display = 'block';
     } else if (lastUpdatedElement) {
         lastUpdatedElement.style.display = 'none';
     }
