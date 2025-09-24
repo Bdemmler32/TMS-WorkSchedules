@@ -8,6 +8,7 @@ let nameSortOrder = 'first'; // 'first' or 'last'
 let officeHoursOnly = false;
 let calendarDate = new Date(); // Current month/year being displayed in calendar
 let selectedWeekStart = null; // Week selected in calendar
+let lastUpdatedDate = null; // Last updated date from Admin sheet
 
 // Week 1 starts on September 13, 2025
 const WEEK_1_START = new Date('2025-09-13T00:00:00');
@@ -104,8 +105,17 @@ async function loadScheduleData() {
 
 function processWorkbookData(workbook) {
     const validSheets = workbook.SheetNames.filter(name => 
-        name !== 'NewEmployee' && name !== 'FormTools' && name !== 'Admin'
+        name !== 'NewEmployee' && name !== 'FormTools'
     );
+    
+    // Read last updated date from Admin sheet if it exists
+    if (workbook.SheetNames.includes('Admin')) {
+        const adminSheet = workbook.Sheets['Admin'];
+        const lastUpdatedCell = adminSheet['E10'];
+        if (lastUpdatedCell && lastUpdatedCell.v) {
+            lastUpdatedDate = lastUpdatedCell.v;
+        }
+    }
     
     const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
     const dayColumns = {
@@ -617,6 +627,41 @@ function renderScheduleGrid() {
     });
     
     updateFilterResults(filteredEmployees.length, employees.length);
+    updateLastUpdatedDisplay();
+}
+
+function updateLastUpdatedDisplay() {
+    // Add or update the last updated date display
+    let lastUpdatedElement = document.getElementById('lastUpdatedDate');
+    
+    if (lastUpdatedDate) {
+        if (!lastUpdatedElement) {
+            // Create the element if it doesn't exist
+            lastUpdatedElement = document.createElement('div');
+            lastUpdatedElement.id = 'lastUpdatedDate';
+            lastUpdatedElement.className = 'last-updated-date';
+            
+            const filterResults = document.getElementById('filterResults');
+            if (filterResults) {
+                filterResults.parentNode.insertBefore(lastUpdatedElement, filterResults.nextSibling);
+            }
+        }
+        
+        // Format the date if it's a date object
+        let dateString = lastUpdatedDate;
+        if (lastUpdatedDate instanceof Date) {
+            dateString = lastUpdatedDate.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+        
+        lastUpdatedElement.textContent = `Last Updated: ${dateString}`;
+        lastUpdatedElement.style.display = 'block';
+    } else if (lastUpdatedElement) {
+        lastUpdatedElement.style.display = 'none';
+    }
 }
 
 function hasScheduleData(weekData) {

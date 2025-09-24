@@ -418,6 +418,25 @@ body {
     background: #f8f9fa;
 }
 
+/* Last Updated Date */
+.last-updated-date {
+    padding: 8px 20px;
+    font-size: 11px;
+    color: #888;
+    text-align: right;
+    background: #f8f9fa;
+    font-style: italic;
+}
+
+/* Responsive handling for collision */
+@media (max-width: 600px) {
+    .last-updated-date {
+        text-align: center;
+        border-top: 1px solid #e0e0e0;
+        margin-top: -1px;
+    }
+}
+
 /* Employee Colors */
 .color-1 { background-color: #e53e3e; }
 .color-2 { background-color: #dd6b20; }
