@@ -631,34 +631,39 @@ function renderScheduleGrid() {
 }
 
 function updateLastUpdatedDisplay() {
-    // Add or update the last updated date display
+    // Add or update the last updated date display inside filter results
     let lastUpdatedElement = document.getElementById('lastUpdatedDate');
+    const filterResults = document.getElementById('filterResults');
     
-    if (lastUpdatedDate) {
+    if (lastUpdatedDate && filterResults) {
         if (!lastUpdatedElement) {
             // Create the element if it doesn't exist
-            lastUpdatedElement = document.createElement('div');
+            lastUpdatedElement = document.createElement('span');
             lastUpdatedElement.id = 'lastUpdatedDate';
             lastUpdatedElement.className = 'last-updated-date';
-            
-            const filterResults = document.getElementById('filterResults');
-            if (filterResults) {
-                filterResults.parentNode.insertBefore(lastUpdatedElement, filterResults.nextSibling);
-            }
+            filterResults.appendChild(lastUpdatedElement);
         }
         
-        // Format the date if it's a date object
+        // Format the date
         let dateString = lastUpdatedDate;
-        if (lastUpdatedDate instanceof Date) {
+        if (typeof lastUpdatedDate === 'number') {
+            // Excel date serial number to JavaScript date
+            const excelDate = new Date((lastUpdatedDate - 25569) * 86400 * 1000);
+            dateString = excelDate.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'numeric',
+                day: 'numeric'
+            });
+        } else if (lastUpdatedDate instanceof Date) {
             dateString = lastUpdatedDate.toLocaleDateString('en-US', {
                 year: 'numeric',
-                month: 'long',
+                month: 'numeric',
                 day: 'numeric'
             });
         }
         
         lastUpdatedElement.textContent = `Last Updated: ${dateString}`;
-        lastUpdatedElement.style.display = 'block';
+        lastUpdatedElement.style.display = 'inline';
     } else if (lastUpdatedElement) {
         lastUpdatedElement.style.display = 'none';
     }
