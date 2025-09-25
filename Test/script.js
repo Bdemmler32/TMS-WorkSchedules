@@ -962,15 +962,15 @@ function updateFilterResults(displayedCount, totalCount) {
         if (isFilterActive || officeHoursOnly) {
             let filterDesc = '';
             if (selectedEmployees.length > 0 && officeHoursOnly) {
-                filterDesc = ' (selected employees + In-Office hours only)';
+                filterDesc = ' (Selected Employees + In-Office Hours Only)';
             } else if (selectedEmployees.length > 0) {
-                filterDesc = ' (selected employees)';
+                filterDesc = ' (Selected Employees)';
             } else if (officeHoursOnly) {
-                filterDesc = ' (In-Office hours only)';
+                filterDesc = ' (In-Office Hours Only)';
             }
-            filterResultsText.textContent = `Showing ${displayedCount} of ${totalCount} employees${filterDesc}`;
+            filterResultsText.textContent = `Showing ${displayedCount} of ${totalCount} Employees${filterDesc}`;
         } else {
-            filterResultsText.textContent = `Showing all ${displayedCount} employees`;
+            filterResultsText.textContent = `Showing All ${displayedCount} Employees`;
         }
     }
 }
