@@ -40,31 +40,54 @@ body {
     padding: 20px;
 }
 
-.header-section h1 {
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.header-left h1 {
     font-size: 18px;
     font-weight: 600;
     color: #333;
     margin: 0;
 }
 
-.collapse-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 8px;
-    border-radius: 4px;
-    color: #666;
-    transition: all 0.2s;
-    font-size: 14px;
+.last-updated-header {
+    font-size: 11px;
+    color: #888;
+    font-style: italic;
 }
 
-.collapse-btn:hover {
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.expand-collapse-text {
+    background: none;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 10px;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.expand-collapse-text:hover {
     background: #f0f0f0;
     color: #333;
 }
 
-.collapse-btn i {
+.expand-collapse-text i {
     transition: transform 0.3s ease;
+    font-size: 10px;
 }
 
 /* Expandable Content */
@@ -381,7 +404,7 @@ body {
 
 /* Work Blocks */
 .work-block {
-    background: #d1c4e9;
+    background: #e4deef;
     color: #4a148c;
     border-radius: 12px;
     padding: 4px 6px;
@@ -393,7 +416,7 @@ body {
 }
 
 .work-block.office {
-    background: #ffeaa7;
+    background: #fff2c8;
     color: #2d3436;
 }
 
@@ -416,22 +439,6 @@ body {
     color: #666;
     text-align: center;
     background: #f8f9fa;
-}
-
-/* Last Updated Date */
-.last-updated-date {
-    padding: 8px 20px 10px 20px;
-    font-size: 11px;
-    color: #888;
-    text-align: right;
-    font-style: italic;
-}
-
-/* Responsive handling for collision */
-@media (max-width: 600px) {
-    .last-updated-date {
-        text-align: center;
-    }
 }
 
 /* Employee Colors */
@@ -558,7 +565,7 @@ body {
 }
 
 .modal-work-block {
-    background: #d1c4e9;
+    background: #e4deef;
     color: #4a148c;
     border-radius: 12px;
     padding: 6px 8px;
@@ -569,7 +576,7 @@ body {
 }
 
 .modal-work-block.office {
-    background: #ffeaa7;
+    background: #fff2c8;
     color: #2d3436;
 }
 
