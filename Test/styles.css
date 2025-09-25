@@ -404,7 +404,7 @@ body {
 
 /* Work Blocks */
 .work-block {
-    background: #d1c4e9;
+    background: #e4deef;
     color: #4a148c;
     border-radius: 12px;
     padding: 4px 6px;
@@ -416,7 +416,7 @@ body {
 }
 
 .work-block.office {
-    background: #ffeaa7;
+    background: #fff2c8;
     color: #2d3436;
 }
 
@@ -565,7 +565,7 @@ body {
 }
 
 .modal-work-block {
-    background: #d1c4e9;
+    background: #e4deef;
     color: #4a148c;
     border-radius: 12px;
     padding: 6px 8px;
@@ -576,7 +576,7 @@ body {
 }
 
 .modal-work-block.office {
-    background: #ffeaa7;
+    background: #fff2c8;
     color: #2d3436;
 }
 
