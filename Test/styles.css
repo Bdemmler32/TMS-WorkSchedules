@@ -40,11 +40,46 @@ body {
     padding: 20px;
 }
 
-.header-section h1 {
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.header-left h1 {
     font-size: 18px;
     font-weight: 600;
     color: #333;
     margin: 0;
+}
+
+.last-updated-header {
+    font-size: 11px;
+    color: #888;
+    font-style: italic;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.expand-collapse-text {
+    background: none;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 10px;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+}
+
+.expand-collapse-text:hover {
+    background: #f0f0f0;
+    color: #333;
 }
 
 .collapse-btn {
@@ -416,22 +451,6 @@ body {
     color: #666;
     text-align: center;
     background: #f8f9fa;
-}
-
-/* Last Updated Date */
-.last-updated-date {
-    padding: 8px 20px 10px 20px;
-    font-size: 11px;
-    color: #888;
-    text-align: right;
-    font-style: italic;
-}
-
-/* Responsive handling for collision */
-@media (max-width: 600px) {
-    .last-updated-date {
-        text-align: center;
-    }
 }
 
 /* Employee Colors */

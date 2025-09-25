@@ -14,10 +14,16 @@
         <div class="unified-container" id="unifiedContainer">
             <!-- Header Section -->
             <div class="header-section">
-                <h1>TMS Staff Work Schedules</h1>
-                <button class="collapse-btn" id="collapseBtn">
-                    <i class="fas fa-chevron-down" id="collapseIcon"></i>
-                </button>
+                <div class="header-left">
+                    <h1>TMS Staff Work Schedules</h1>
+                    <div class="last-updated-header" id="lastUpdatedHeader" style="display: none;"></div>
+                </div>
+                <div class="header-right">
+                    <button class="expand-collapse-text" id="expandCollapseText">EXPAND</button>
+                    <button class="collapse-btn" id="collapseBtn">
+                        <i class="fas fa-chevron-down" id="collapseIcon"></i>
+                    </button>
+                </div>
             </div>
 
             <!-- Expandable Content -->
@@ -65,9 +71,6 @@
                 <div class="filter-results" id="filterResults" style="display: none;">
                     <span id="filterResultsText">Loading...</span>
                 </div>
-
-                <!-- Last Updated Date -->
-                <div class="last-updated-date" id="lastUpdatedDate" style="display: none;"></div>
             </div>
         </div>
     </div>
@@ -115,7 +118,7 @@
                         <input type="checkbox" id="officeHoursCheckbox">
                         <label for="officeHoursCheckbox" class="office-hours-label">
                             <i class="fas fa-building"></i>
-                            <span>Display In-Office Hours Only</span>
+                            <span>Display Office Hours Only</span>
                         </label>
                     </div>
                     <div class="filter-action-buttons">

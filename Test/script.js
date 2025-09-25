@@ -40,6 +40,9 @@ function initializeEventListeners() {
     // Collapse/Expand button
     document.getElementById('collapseBtn').addEventListener('click', toggleScheduleCollapse);
     
+    // Expand/Collapse text button
+    document.getElementById('expandCollapseText').addEventListener('click', toggleScheduleCollapse);
+    
     // Date range click to open calendar
     document.getElementById('dateRange').addEventListener('click', openCalendarModal);
     
@@ -631,22 +634,10 @@ function renderScheduleGrid() {
 }
 
 function updateLastUpdatedDisplay() {
-    // Add or update the last updated date display as separate element
-    let lastUpdatedElement = document.getElementById('lastUpdatedDate');
+    // Add or update the last updated date display in header
+    let lastUpdatedElement = document.getElementById('lastUpdatedHeader');
     
-    if (lastUpdatedDate) {
-        if (!lastUpdatedElement) {
-            // Create the element if it doesn't exist - should already exist in HTML
-            lastUpdatedElement = document.createElement('div');
-            lastUpdatedElement.id = 'lastUpdatedDate';
-            lastUpdatedElement.className = 'last-updated-date';
-            
-            const filterResults = document.getElementById('filterResults');
-            if (filterResults) {
-                filterResults.parentNode.insertBefore(lastUpdatedElement, filterResults.nextSibling);
-            }
-        }
-        
+    if (lastUpdatedDate && lastUpdatedElement) {
         // Format the date - handle both Excel serial numbers and actual values
         let dateString = lastUpdatedDate;
         
@@ -996,9 +987,10 @@ function toggleScheduleCollapse() {
     const unifiedContainer = document.getElementById('unifiedContainer');
     const expandableContent = document.getElementById('expandableContent');
     const collapseIcon = document.getElementById('collapseIcon');
+    const expandCollapseText = document.getElementById('expandCollapseText');
     
     // Check if elements exist before trying to access them
-    if (!expandableContent || !collapseIcon || !unifiedContainer) {
+    if (!expandableContent || !collapseIcon || !unifiedContainer || !expandCollapseText) {
         console.error('Required elements not found for collapse toggle');
         return;
     }
@@ -1008,11 +1000,13 @@ function toggleScheduleCollapse() {
         expandableContent.classList.remove('collapsed');
         unifiedContainer.classList.remove('collapsed');
         collapseIcon.className = 'fas fa-chevron-up';
+        expandCollapseText.textContent = 'COLLAPSE';
     } else {
         // Collapse
         expandableContent.classList.add('collapsed');
         unifiedContainer.classList.add('collapsed');
         collapseIcon.className = 'fas fa-chevron-down';
+        expandCollapseText.textContent = 'EXPAND';
     }
 }
 
