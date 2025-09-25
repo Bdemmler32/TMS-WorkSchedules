@@ -131,6 +131,17 @@ body {
     text-align: center;
 }
 
+.clickable-date {
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.clickable-date:hover {
+    background: #f0f0f0;
+}
+
 .week-selector {
     display: flex;
     align-items: center;
@@ -323,7 +334,6 @@ body {
 
 .day-cell.current-day {
     background: #f3f8ff;
-    /* Removed border-left: 3px solid #1976d2; */
 }
 
 /* Hover effect for employee rows */
@@ -408,6 +418,22 @@ body {
     background: #f8f9fa;
 }
 
+/* Last Updated Date */
+.last-updated-date {
+    padding: 8px 20px 10px 20px;
+    font-size: 11px;
+    color: #888;
+    text-align: right;
+    font-style: italic;
+}
+
+/* Responsive handling for collision */
+@media (max-width: 600px) {
+    .last-updated-date {
+        text-align: center;
+    }
+}
+
 /* Employee Colors */
 .color-1 { background-color: #e53e3e; }
 .color-2 { background-color: #dd6b20; }
@@ -448,6 +474,11 @@ body {
 .filter-modal-content {
     width: 95%;
     max-width: 600px;
+}
+
+.calendar-modal-content {
+    width: 95%;
+    max-width: 500px;
 }
 
 .modal-header {
@@ -550,6 +581,155 @@ body {
     margin-top: 20px;
 }
 
+/* Calendar Styles */
+.calendar-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.calendar-nav-btn {
+    background: none;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.calendar-nav-btn:hover {
+    background: #f0f0f0;
+}
+
+.calendar-month-year {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+    background: #e0e0e0;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.calendar-day-header {
+    background: #f8f9fa;
+    padding: 10px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 12px;
+    color: #666;
+}
+
+.calendar-day {
+    background: white;
+    padding: 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+}
+
+.calendar-day:hover {
+    background: #f0f7ff;
+}
+
+.calendar-day.empty {
+    cursor: default;
+    color: #ccc;
+}
+
+.calendar-day.empty:hover {
+    background: white;
+}
+
+.calendar-day.today {
+    background: #e3f2fd;
+    color: #1976d2;
+    font-weight: 600;
+}
+
+.calendar-day.selected-week {
+    background: #1976d2;
+    color: white;
+    font-weight: 600;
+}
+
+.calendar-day.selected-week:hover {
+    background: #1565c0;
+}
+
+.calendar-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.today-btn {
+    padding: 8px 16px;
+    border: 1px solid #1976d2;
+    border-radius: 6px;
+    background: white;
+    color: #1976d2;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background-color 0.2s;
+}
+
+.today-btn:hover {
+    background: #e3f2fd;
+}
+
+.calendar-action-buttons {
+    display: flex;
+    gap: 12px;
+}
+
+.cancel-btn {
+    padding: 8px 16px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: white;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background-color 0.2s;
+}
+
+.cancel-btn:hover {
+    background: #f0f0f0;
+}
+
+.apply-btn {
+    padding: 8px 16px;
+    border: 1px solid #1976d2;
+    border-radius: 6px;
+    background: #1976d2;
+    color: white;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background-color 0.2s;
+}
+
+.apply-btn:hover {
+    background: #1565c0;
+}
+
 /* Filter Modal Styles */
 .search-container {
     margin-bottom: 20px;
@@ -610,8 +790,6 @@ body {
     font-size: 10px;
     flex-shrink: 0;
 }
-
-/* Filter Criteria Section - Removed since it's now inline */
 
 .filter-actions {
     display: flex;
@@ -729,11 +907,16 @@ body {
         gap: 8px;
     }
     
-    .filter-modal-content {
+    .filter-modal-content, .calendar-modal-content {
         max-width: 95%;
     }
     
     .filter-actions {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .calendar-actions {
         flex-direction: column;
         gap: 12px;
     }

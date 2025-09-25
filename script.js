@@ -6,6 +6,9 @@ let selectedEmployees = []; // For filtering
 let isFilterActive = false;
 let nameSortOrder = 'first'; // 'first' or 'last'
 let officeHoursOnly = false;
+let calendarDate = new Date(); // Current month/year being displayed in calendar
+let selectedWeekStart = null; // Week selected in calendar
+let lastUpdatedDate = null; // Last updated date from Admin sheet
 
 // Week 1 starts on September 13, 2025
 const WEEK_1_START = new Date('2025-09-13T00:00:00');
@@ -37,6 +40,9 @@ function initializeEventListeners() {
     // Collapse/Expand button
     document.getElementById('collapseBtn').addEventListener('click', toggleScheduleCollapse);
     
+    // Date range click to open calendar
+    document.getElementById('dateRange').addEventListener('click', openCalendarModal);
+    
     // Modal events - Employee modal
     document.getElementById('closeModal').addEventListener('click', closeModal);
     document.getElementById('employeeModal').addEventListener('click', (e) => {
@@ -45,6 +51,21 @@ function initializeEventListeners() {
     
     // Filter modal events - NO CLICK OUTSIDE TO CLOSE
     document.getElementById('closeFilterModal').addEventListener('click', closeFilterModal);
+    
+    // Calendar modal events
+    document.getElementById('closeCalendarModal').addEventListener('click', closeCalendarModal);
+    document.getElementById('calendarModal').addEventListener('click', (e) => {
+        if (e.target.id === 'calendarModal') closeCalendarModal();
+    });
+    
+    // Calendar navigation
+    document.getElementById('prevMonth').addEventListener('click', () => navigateCalendarMonth(-1));
+    document.getElementById('nextMonth').addEventListener('click', () => navigateCalendarMonth(1));
+    
+    // Calendar actions
+    document.getElementById('todayBtn').addEventListener('click', selectTodayInCalendar);
+    document.getElementById('cancelCalendarBtn').addEventListener('click', closeCalendarModal);
+    document.getElementById('applyCalendarBtn').addEventListener('click', applyCalendarSelection);
     
     // Filter actions
     document.getElementById('selectAllBtn').addEventListener('click', selectAllEmployees);
@@ -84,8 +105,17 @@ async function loadScheduleData() {
 
 function processWorkbookData(workbook) {
     const validSheets = workbook.SheetNames.filter(name => 
-        name !== 'NewEmployee' && name !== 'FormTools'
+        name !== 'NewEmployee' && name !== 'FormTools' && name !== 'Admin'
     );
+    
+    // Read last updated date from Admin sheet if it exists
+    if (workbook.SheetNames.includes('Admin')) {
+        const adminSheet = workbook.Sheets['Admin'];
+        const lastUpdatedCell = adminSheet['E10'];
+        if (lastUpdatedCell && lastUpdatedCell.v) {
+            lastUpdatedDate = lastUpdatedCell.v;
+        }
+    }
     
     const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
     const dayColumns = {
@@ -238,6 +268,130 @@ function updateDateRange() {
     const dateRange = document.getElementById('dateRange');
     if (dateRange) {
         dateRange.textContent = `${startStr} - ${endStr}`;
+    }
+}
+
+// Calendar Functions
+function openCalendarModal() {
+    const modal = document.getElementById('calendarModal');
+    
+    // Set calendar to current week's month
+    calendarDate = new Date(currentWeekStart);
+    selectedWeekStart = new Date(currentWeekStart);
+    
+    renderCalendar();
+    modal.style.display = 'flex';
+}
+
+function closeCalendarModal() {
+    document.getElementById('calendarModal').style.display = 'none';
+}
+
+function navigateCalendarMonth(direction) {
+    calendarDate.setMonth(calendarDate.getMonth() + direction);
+    renderCalendar();
+}
+
+function selectTodayInCalendar() {
+    const today = new Date();
+    selectedWeekStart = getWeekStartFromDate(today);
+    calendarDate = new Date(today);
+    renderCalendar();
+}
+
+function applyCalendarSelection() {
+    if (selectedWeekStart) {
+        currentWeekStart = new Date(selectedWeekStart);
+        
+        // Calculate week type
+        const daysSinceStart = Math.floor((currentWeekStart - WEEK_1_START) / (1000 * 60 * 60 * 24));
+        const weekNumber = Math.floor(daysSinceStart / 7);
+        currentWeekType = (weekNumber % 2) + 1;
+        
+        updateDisplay();
+        closeCalendarModal();
+    }
+}
+
+function getWeekStartFromDate(date) {
+    // Calculate which work week this date belongs to
+    const daysSinceWeek1 = Math.floor((date - WEEK_1_START) / (1000 * 60 * 60 * 24));
+    const weekNumber = Math.floor(daysSinceWeek1 / 7);
+    
+    const weekStart = new Date(WEEK_1_START);
+    weekStart.setDate(weekStart.getDate() + (weekNumber * 7));
+    return weekStart;
+}
+
+function renderCalendar() {
+    const grid = document.getElementById('calendarGrid');
+    const monthYear = document.getElementById('calendarMonthYear');
+    
+    const year = calendarDate.getFullYear();
+    const month = calendarDate.getMonth();
+    
+    // Update month/year display
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                       'July', 'August', 'September', 'October', 'November', 'December'];
+    monthYear.textContent = `${monthNames[month]} ${year}`;
+    
+    // Clear grid
+    grid.innerHTML = '';
+    
+    // Add day headers
+    const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    dayHeaders.forEach(day => {
+        const header = document.createElement('div');
+        header.className = 'calendar-day-header';
+        header.textContent = day;
+        grid.appendChild(header);
+    });
+    
+    // Get first day of month and number of days
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay();
+    
+    // Add empty cells for days before month starts
+    for (let i = 0; i < startingDayOfWeek; i++) {
+        const emptyCell = document.createElement('div');
+        emptyCell.className = 'calendar-day empty';
+        grid.appendChild(emptyCell);
+    }
+    
+    // Add days of the month
+    for (let day = 1; day <= daysInMonth; day++) {
+        const dayCell = document.createElement('div');
+        dayCell.className = 'calendar-day';
+        dayCell.textContent = day;
+        
+        const cellDate = new Date(year, month, day);
+        const weekStart = getWeekStartFromDate(cellDate);
+        
+        // Check if this day is in the selected week
+        if (selectedWeekStart) {
+            const weekEnd = new Date(selectedWeekStart);
+            weekEnd.setDate(weekEnd.getDate() + 6);
+            
+            if (cellDate >= selectedWeekStart && cellDate <= weekEnd) {
+                dayCell.classList.add('selected-week');
+            }
+        }
+        
+        // Check if this is today
+        const today = new Date();
+        if (cellDate.toDateString() === today.toDateString()) {
+            dayCell.classList.add('today');
+        }
+        
+        // Add click handler
+        dayCell.addEventListener('click', () => {
+            selectedWeekStart = weekStart;
+            renderCalendar(); // Re-render to show selection
+        });
+        
+        grid.appendChild(dayCell);
     }
 }
 
@@ -473,6 +627,70 @@ function renderScheduleGrid() {
     });
     
     updateFilterResults(filteredEmployees.length, employees.length);
+    updateLastUpdatedDisplay();
+}
+
+function updateLastUpdatedDisplay() {
+    // Add or update the last updated date display as separate element
+    let lastUpdatedElement = document.getElementById('lastUpdatedDate');
+    
+    if (lastUpdatedDate) {
+        if (!lastUpdatedElement) {
+            // Create the element if it doesn't exist - should already exist in HTML
+            lastUpdatedElement = document.createElement('div');
+            lastUpdatedElement.id = 'lastUpdatedDate';
+            lastUpdatedElement.className = 'last-updated-date';
+            
+            const filterResults = document.getElementById('filterResults');
+            if (filterResults) {
+                filterResults.parentNode.insertBefore(lastUpdatedElement, filterResults.nextSibling);
+            }
+        }
+        
+        // Format the date - handle both Excel serial numbers and actual values
+        let dateString = lastUpdatedDate;
+        
+        // Check if it's an Excel serial date number (typically > 1000)
+        if (typeof lastUpdatedDate === 'number' && lastUpdatedDate > 1000) {
+            // Convert Excel serial number to JavaScript date with timezone correction
+            const excelDate = new Date((lastUpdatedDate - 25569) * 86400 * 1000);
+            // Add timezone offset to prevent date shifting
+            const correctedDate = new Date(excelDate.getTime() + (excelDate.getTimezoneOffset() * 60 * 1000));
+            dateString = correctedDate.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'numeric',
+                day: 'numeric'
+            });
+        } else if (lastUpdatedDate instanceof Date) {
+            // It's already a date object
+            dateString = lastUpdatedDate.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'numeric',
+                day: 'numeric'
+            });
+        } else if (typeof lastUpdatedDate === 'string') {
+            // If it's a string, try to parse it as a date
+            const parsedDate = new Date(lastUpdatedDate);
+            if (!isNaN(parsedDate.getTime())) {
+                dateString = parsedDate.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'numeric',
+                    day: 'numeric'
+                });
+            } else {
+                // If it can't be parsed as a date, use it as-is
+                dateString = lastUpdatedDate.toString();
+            }
+        } else {
+            // Use the raw value converted to string
+            dateString = lastUpdatedDate.toString();
+        }
+        
+        lastUpdatedElement.textContent = `Last Updated: ${dateString}`;
+        lastUpdatedElement.style.display = 'block';
+    } else if (lastUpdatedElement) {
+        lastUpdatedElement.style.display = 'none';
+    }
 }
 
 function hasScheduleData(weekData) {
@@ -600,6 +818,17 @@ function openEmployeeFilterModal() {
     }, 100);
 }
 
+function closeFilterModal() {
+    document.getElementById('employeeFilterModal').style.display = 'none';
+}
+
+function updateOfficeHoursCheckbox() {
+    const checkbox = document.getElementById('officeHoursCheckbox');
+    if (checkbox) {
+        checkbox.checked = officeHoursOnly;
+    }
+}
+
 function scrollToEmployee(employeeItem) {
     const employeeList = document.getElementById('employeeFilterList');
     if (employeeList && employeeItem) {
@@ -619,17 +848,6 @@ function scrollToEmployee(employeeItem) {
             top: Math.max(0, desiredScrollTop),
             behavior: 'smooth'
         });
-    }
-}
-
-function closeFilterModal() {
-    document.getElementById('employeeFilterModal').style.display = 'none';
-}
-
-function updateOfficeHoursCheckbox() {
-    const checkbox = document.getElementById('officeHoursCheckbox');
-    if (checkbox) {
-        checkbox.checked = officeHoursOnly;
     }
 }
 

@@ -30,7 +30,7 @@
                     <div class="date-navigation">
                         <button class="nav-btn" id="prevWeek">&lt;</button>
                         <div class="date-range-container">
-                            <span class="date-range" id="dateRange">Loading...</span>
+                            <span class="date-range clickable-date" id="dateRange">Loading...</span>
                         </div>
                         <button class="nav-btn" id="nextWeek">&gt;</button>
                     </div>
@@ -65,6 +65,9 @@
                 <div class="filter-results" id="filterResults" style="display: none;">
                     <span id="filterResultsText">Loading...</span>
                 </div>
+
+                <!-- Last Updated Date -->
+                <div class="last-updated-date" id="lastUpdatedDate" style="display: none;"></div>
             </div>
         </div>
     </div>
@@ -112,13 +115,46 @@
                         <input type="checkbox" id="officeHoursCheckbox">
                         <label for="officeHoursCheckbox" class="office-hours-label">
                             <i class="fas fa-building"></i>
-                            <span>Display Office Hours Only</span>
+                            <span>Display In-Office Hours Only</span>
                         </label>
                     </div>
                     <div class="filter-action-buttons">
                         <button class="select-all-btn" id="selectAllBtn">Select All</button>
                         <button class="deselect-all-btn" id="deselectAllBtn">Deselect All</button>
                         <button class="apply-filter-btn" id="applyFilterBtn">Apply</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calendar Modal -->
+    <div class="modal" id="calendarModal" style="display: none;">
+        <div class="modal-content calendar-modal-content">
+            <div class="modal-header">
+                <h2>Select Work Week</h2>
+                <button class="close-btn" id="closeCalendarModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="calendar-controls">
+                    <button class="calendar-nav-btn" id="prevMonth">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <div class="calendar-month-year" id="calendarMonthYear">
+                        January 2025
+                    </div>
+                    <button class="calendar-nav-btn" id="nextMonth">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+                <div class="calendar-grid" id="calendarGrid">
+                    <!-- Calendar will be populated by JavaScript -->
+                </div>
+                <div class="calendar-actions">
+                    <button class="today-btn" id="todayBtn">Today</button>
+                    <div class="calendar-action-buttons">
+                        <button class="cancel-btn" id="cancelCalendarBtn">Cancel</button>
+                        <button class="apply-btn" id="applyCalendarBtn">Apply</button>
                     </div>
                 </div>
             </div>
