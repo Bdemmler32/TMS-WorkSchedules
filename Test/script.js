@@ -83,7 +83,7 @@ async function loadScheduleData() {
         
         const response = await fetch('TMS-WorkSchedules.xlsx');
         if (!response.ok) {
-            throw new Error('Could not load Excel file');
+            throw new Error('Could not load data file');
         }
         
         const arrayBuffer = await response.arrayBuffer();
@@ -962,11 +962,11 @@ function updateFilterResults(displayedCount, totalCount) {
         if (isFilterActive || officeHoursOnly) {
             let filterDesc = '';
             if (selectedEmployees.length > 0 && officeHoursOnly) {
-                filterDesc = ' (selected employees + office hours only)';
+                filterDesc = ' (selected employees + In-Office hours only)';
             } else if (selectedEmployees.length > 0) {
                 filterDesc = ' (selected employees)';
             } else if (officeHoursOnly) {
-                filterDesc = ' (office hours only)';
+                filterDesc = ' (In-Office hours only)';
             }
             filterResultsText.textContent = `Showing ${displayedCount} of ${totalCount} employees${filterDesc}`;
         } else {
