@@ -37,9 +37,6 @@ function initializeEventListeners() {
     // Filter button
     document.getElementById('filterBtn').addEventListener('click', handleFilterBtn);
     
-    // Collapse/Expand button
-    document.getElementById('collapseBtn').addEventListener('click', toggleScheduleCollapse);
-    
     // Expand/Collapse text button
     document.getElementById('expandCollapseText').addEventListener('click', toggleScheduleCollapse);
     
@@ -1000,13 +997,13 @@ function toggleScheduleCollapse() {
         expandableContent.classList.remove('collapsed');
         unifiedContainer.classList.remove('collapsed');
         collapseIcon.className = 'fas fa-chevron-up';
-        expandCollapseText.textContent = 'COLLAPSE';
+        expandCollapseText.innerHTML = 'COLLAPSE <i class="fas fa-chevron-up" id="collapseIcon"></i>';
     } else {
         // Collapse
         expandableContent.classList.add('collapsed');
         unifiedContainer.classList.add('collapsed');
         collapseIcon.className = 'fas fa-chevron-down';
-        expandCollapseText.textContent = 'EXPAND';
+        expandCollapseText.innerHTML = 'EXPAND <i class="fas fa-chevron-down" id="collapseIcon"></i>';
     }
 }
 
