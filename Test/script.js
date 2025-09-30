@@ -81,7 +81,16 @@ async function loadScheduleData() {
     try {
         showLoading(true);
         
-        const response = await fetch('TMS-WorkSchedules.xlsx');
+        // Add cache-busting parameters
+        const cacheBuster = new Date().getTime();
+        const response = await fetch(`TMS-WorkSchedules.xlsx?v=${cacheBuster}`, {
+            cache: 'no-store',
+            headers: {
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+            }
+        });
         if (!response.ok) {
             throw new Error('Could not load data file');
         }
